@@ -173,28 +173,107 @@ function renderTitles(){
     box.appendChild(it);
   });
 }
+// ---- Helpers for purchases / tokens ----
+function autoRefundPurchases(amountNeeded){
+  let needed = Math.max(0, Number(amountNeeded)||0);
+  if(needed <= 0) return;
+  for(let i = state.history.length - 1; i >= 0 && needed > 0; i--){
+    const row = state.history[i];
+    if((row.flags || []).includes('purchase')){
+      state.tokens -= row.tokens;   // subtracting a negative = refund
+      needed -= (-row.tokens);
+      state.history.splice(i, 1);
+    }
+  }
+  save();
+}
 function renderShop(){
-  const box=$('#shopList'); box.innerHTML='';
-  if(state.rewards.length===0){ box.innerHTML='<div class="sub small">No rewards yet.</div>'; return; }
+  const box = $('#shopList');
+  box.innerHTML = '';
+  if(state.rewards.length === 0){
+    box.innerHTML = '<div class="sub small">No rewards yet.</div>';
+    return;
+  }
+
   state.rewards.forEach(r=>{
-    const it=document.createElement('div'); it.className='item';
-    const can=state.tokens>=r.cost;
-    it.innerHTML=`<div class="grow"><strong>${r.name}</strong><div class="sub small">Type: ${r.type} • Cost (tokens): ${r.cost}</div></div><button class="btn ${can?'':'alt'} small" ${can?'':'disabled'}>Buy</button> <button class="btn alt small del">Delete</button>`;
-    it.querySelector('.del').onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.rewards=state.rewards.filter(x=>x.id!==r.id); save(); renderShop(); };
-    it.querySelector('button').onclick=()=>{ if(state.tokens<r.cost) return; state.tokens-=r.cost; if(r.type==='avatar') state.user.avatarStage=Math.min(5,(state.user.avatarStage||0)+1); save(); renderHeader(); renderShop(); };
+    const it = document.createElement('div');
+    it.className = 'item';
+    const can = state.tokens >= r.cost;
+    it.innerHTML = `
+      <div class="grow">
+        <strong>${r.name}</strong>
+        <div class="sub small">Type: ${r.type} • Cost (tokens): ${r.cost}</div>
+      </div>
+      <button class="btn ${can ? '' : 'alt'} small buyBtn" ${can ? '' : 'disabled'}>Buy</button>
+      <button class="btn alt small del">Delete</button>
+    `;
+
+    // Delete reward
+    it.querySelector('.del').onclick = () => {
+      if(!confirm('You sure you want to delete this?')) return;
+      state.rewards = state.rewards.filter(x => x.id !== r.id);
+      save(); renderShop();
+    };
+
+    // Buy with confirmation + history entry (undoable)
+    const buyBtn = it.querySelector('.buyBtn');
+    buyBtn.onclick = () => {
+      if(state.tokens < r.cost) return;
+      if(!confirm(`Buy "${r.name}" for ${r.cost} tokens?`)) return;
+
+      state.tokens -= r.cost;
+      state.history.push({
+        id: uid(),
+        date: todayKey(),
+        taskId: null,
+        name: `Purchase: ${r.name}`,
+        base: 0,
+        final: 0,
+        tokens: -r.cost,          // negative = spent
+        flags: ['purchase']
+      });
+
+      if(r.type === 'avatar'){
+        state.user.avatarStage = Math.min(5, (state.user.avatarStage || 0) + 1);
+      }
+
+      save();
+      renderHeader();
+      renderShop();
+      renderHistory();
+      renderKPIs();
+    };
+
     box.appendChild(it);
   });
 }
+
 function renderHistory(){
-  const tb=$('#histTable tbody'); tb.innerHTML='';
+  const tb = $('#histTable tbody');
+  tb.innerHTML = '';
+
   state.history.slice().reverse().forEach(h=>{
-    const canUndo = (new Date(todayKey())-new Date(h.date))<=7*86400000;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${h.date}</td><td>${h.name}</td><td>${h.base}</td><td>${h.final}</td><td>${h.tokens||0}</td><td class="small">${(h.flags||[]).join(', ')}</td><td>${canUndo?'<button class="btn alt small">Undo</button>':''}</td>`;
-    if(canUndo){ tr.querySelector('button').onclick=()=> undoEntry(h.id); }
+    const isPurchase = (h.flags || []).includes('purchase');
+    const within7 = (new Date(todayKey()) - new Date(h.date)) <= 7 * 86400000;
+    const canUndo = isPurchase || within7;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${h.date}</td>
+      <td>${h.name}</td>
+      <td>${h.base}</td>
+      <td>${h.final}</td>
+      <td>${h.tokens || 0}</td>
+      <td class="small">${(h.flags || []).join(', ')}</td>
+      <td>${canUndo ? '<button class="btn alt small">Undo</button>' : ''}</td>
+    `;
+    if(canUndo){
+      tr.querySelector('button').onclick = () => undoEntry(h.id);
+    }
     tb.appendChild(tr);
   });
 }
+
 function renderKPIs(){
   const todayXP = state.history.filter(h=>h.date===todayKey() && h.final>0).reduce((a,b)=>a+b.final,0);
   $('#kpiXpToday').textContent=todayXP;
@@ -232,23 +311,75 @@ function markStatus(taskId, kind){ // skip or postpone
   save(); renderAll();
 }
 function undoRecentForTask(taskId){
-  const idx = state.history.slice().reverse().findIndex(h=>h.taskId===taskId && h.date===todayKey());
-  if(idx<0) return;
-  const i = state.history.length-1-idx;
-  const h=state.history[i];
-  if(h.final>0){ adjustMainXP(-h.final); adjustFieldXP(h.fieldId, -h.final); }
-  if(h.tokens) state.tokens -= h.tokens;
+  const idx = state.history.slice().reverse().findIndex(h => h.taskId === taskId && h.date === todayKey());
+  if(idx < 0) return;
+  const i = state.history.length - 1 - idx;
+  const h = state.history[i];
+
+  const tokenDelta = h.tokens || 0;
+  if(tokenDelta > 0 && (state.tokens - tokenDelta) < 0){
+    const need = tokenDelta - state.tokens;
+    if(confirm(`This undo would drop tokens below 0 by ${need}. Auto-refund latest purchase(s)?`)){
+      autoRefundPurchases(need);
+      if(state.tokens - tokenDelta < 0){
+        alert('Not enough refundable purchases to cover. Undo cancelled.');
+        return;
+      }
+    }else{
+      return;
+    }
+  }
+
+  if(h.final > 0){
+    adjustMainXP(-h.final);
+    adjustFieldXP(h.fieldId, -h.final);
+  }
+  state.tokens -= tokenDelta;
+
   state.history.splice(i,1);
-  save(); renderAll();
+  save();
+  renderAll();
 }
+
 function undoEntry(id){
-  const i=state.history.findIndex(h=>h.id===id); if(i<0) return;
-  const h=state.history[i];
-  if((new Date(todayKey())-new Date(h.date))>7*86400000){ alert('Undo window passed'); return; }
-  if(h.final>0){ adjustMainXP(-h.final); adjustFieldXP(h.fieldId, -h.final); }
-  if(h.tokens) state.tokens -= h.tokens;
-  state.history.splice(i,1); save(); renderAll();
+  const i = state.history.findIndex(h => h.id === id);
+  if(i < 0) return;
+  const h = state.history[i];
+  const isPurchase = (h.flags || []).includes('purchase');
+
+  if(!isPurchase){
+    const within7 = (new Date(todayKey()) - new Date(h.date)) <= 7 * 86400000;
+    if(!within7){ alert('Undo window passed'); return; }
+  }
+
+  const tokenDelta = h.tokens || 0; // + earned, - purchase
+  if(tokenDelta > 0){
+    const wouldBe = state.tokens - tokenDelta;
+    if(wouldBe < 0){
+      const need = tokenDelta - state.tokens;
+      if(confirm(`This undo would drop tokens below 0 by ${need}. Auto-refund latest purchase(s)?`)){
+        autoRefundPurchases(need);
+        if(state.tokens - tokenDelta < 0){
+          alert('Not enough refundable purchases to cover. Undo cancelled.');
+          return;
+        }
+      }else{
+        return;
+      }
+    }
+  }
+
+  if(h.final > 0){
+    adjustMainXP(-h.final);
+    adjustFieldXP(h.fieldId, -h.final);
+  }
+  state.tokens -= tokenDelta;   // refund if purchase; subtract if earned
+
+  state.history.splice(i,1);
+  save();
+  renderAll();
 }
+
 
 // Sheets
 function openTasks(){
