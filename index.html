@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>GoL Modern</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <meta name="theme-color" content="#7b8cff">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <button id="hamburger" aria-label="Menu" title="Menu"><span class="ham"></span></button>
+      <div class="top-title">
+        <div id="topTitle">Today</div>
+        <div class="sub" id="dateStr"></div>
+      </div>
+      <div class="top-right">
+        <span class="chip">Lvl <span id="level">1</span></span>
+        <span class="chip">XP <span id="xp">0</span>/<span id="xpReq">200</span></span>
+        <span class="chip">T <span id="tokens">0</span></span>
+      </div>
+    </header>
+
+    <aside id="drawer" aria-label="Navigation">
+      <div class="drawer-header">
+        <div class="avatar" id="avatarBox">L1</div>
+        <div>
+          <div id="userName">Mohammed</div>
+          <div class="sub small">Prestige +<span id="prestigeBonus">0</span>%</div>
+        </div>
+      </div>
+      <nav class="drawer-nav">
+        <button class="nav-item" data-open="tasks">Tasks</button>
+        <button class="nav-item" data-open="fields">Fields</button>
+        <button class="nav-item" data-open="titles">Titles</button>
+        <button class="nav-item" data-open="rewards">Rewards</button>
+        <button class="nav-item" data-open="theme">Theme</button>
+        <button class="nav-item" data-open="backup">Backup</button>
+        <button class="nav-item" data-open="settings">Settings</button>
+      </nav>
+    </aside>
+    <div id="backdrop" role="button" aria-label="Close menu"></div>
+
+    <main id="views">
+      <section id="view-today" class="view active">
+        <div class="card">
+          <div class="row-between wrap gap8">
+            <button id="btnResist" class="btn alt" type="button">Resistance: <span id="resistState">OFF</span></button>
+            <button id="btnProtect" class="btn alt" type="button">Protect streak today</button>
+          </div>
+          <div class="bar"><div class="fill" id="xpBar"></div></div>
+        </div>
+
+        <div class="card">
+          <h3>Quick Session</h3>
+          <div class="row gap8 quick">
+            <div class="btn ghost sess" data-m="25">25m</div>
+            <div class="btn ghost sess" data-m="30">30m</div>
+            <div class="btn ghost sess" data-m="50">50m</div>
+            <label class="stack small quickInput">
+              <span>Custom mins</span>
+              <input id="customMin" type="number" placeholder="20" class="input small" inputmode="numeric">
+            </label>
+            <button class="btn" id="btnStartSession" type="button">Start</button>
+            <button class="btn alt" id="btnStopSession" type="button">Stop</button>
+          </div>
+          <div id="timerBox" class="muted small"></div>
+        </div>
+
+        <div class="card">
+          <div class="row-between">
+            <h3>Today’s Tasks</h3>
+            <button class="btn alt" id="btnAddTask" type="button">+ Task</button>
+          </div>
+          <div id="todayTasks" class="list"></div>
+        </div>
+      </section>
+
+      <section id="view-stats" class="view">
+        <div class="grid2">
+          <div class="card">
+            <h3>Overview</h3>
+            <div class="kpis">
+              <div><div class="kpi" id="kpiXpToday">0</div><div class="muted small">XP Today</div></div>
+              <div><div class="kpi" id="kpiXpWeek">0</div><div class="muted small">XP This Week</div></div>
+              <div><div class="kpi" id="kpiTokens">0</div><div class="muted small">Tokens</div></div>
+              <div><div class="kpi" id="kpiStreakD">0</div><div class="muted small">Daily Streak</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Fields</h3>
+            <div id="fieldsList" class="list"></div>
+            <div class="row gap8" style="margin-top:8px">
+              <label class="stack small">
+                <span>New field name</span>
+                <input id="fieldName" class="input" placeholder="e.g., Fitness">
+              </label>
+              <button class="btn" id="btnAddField" type="button">+ Field</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>History & Undo (7 days)</h3>
+          <table class="table" id="histTable">
+            <thead><tr><th>Date</th><th>Task</th><th>Base</th><th>Final</th><th>Tokens</th><th>Flags</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="view-profile" class="view">
+        <div class="card">
+          <h3>Profile</h3>
+          <div class="row gap8">
+            <div class="avatar big" id="avatarBig">L1</div>
+            <div class="grow">
+              <label class="stack small">
+                <span>Display name</span>
+                <input id="profName" class="input" placeholder="Your name">
+              </label>
+              <div class="row gap8">
+                <label class="stack small">
+                  <span>Avatar stage (0–5)</span>
+                  <input id="profAvatar" class="input small" type="number" min="0" max="5" value="0">
+                </label>
+                <button class="btn alt" id="btnSaveProfile" type="button">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Titles & Boosts</h3>
+          <div id="titleList" class="list"></div>
+          <div class="row gap8">
+            <label class="stack small"><span>Title name</span><input id="titleName" class="input" placeholder="e.g., Stylish Hair"></label>
+            <label class="stack small"><span>Boost %</span><input id="titleBoost" class="input small" type="number" value="5" inputmode="numeric"></label>
+            <label class="stack small"><span>Scope</span>
+              <select id="titleScope" class="input small">
+                <option value="daily">Daily</option>
+                <option value="week">Next Week</option>
+                <option value="month">This Month</option>
+                <option value="always">Always</option>
+              </select>
+            </label>
+            <button class="btn" id="btnAddTitle" type="button">+ Title</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Shop (Tokens only)</h3>
+          <div id="shopList" class="list"></div>
+          <div class="row gap8">
+            <label class="stack small"><span>Reward name</span><input id="rewardName" class="input" placeholder="e.g., New mouse"></label>
+            <label class="stack small"><span>Cost (tokens)</span><input id="rewardCost" class="input small" type="number" value="10" inputmode="numeric"></label>
+            <label class="stack small"><span>Type</span>
+              <select id="rewardType" class="input small">
+                <option value="irl">Real-life</option>
+                <option value="avatar">Avatar</option>
+                <option value="cosmetic">Cosmetic</option>
+                <option value="tool">Tool</option>
+              </select>
+            </label>
+            <button class="btn" id="btnAddReward" type="button">+ Reward</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Prestige</h3>
+          <div class="muted small">Reset levels → keep permanent global bonus; avatar evolves.</div>
+          <div class="row gap8">
+            <label class="stack small"><span>Prestige bonus %</span><input id="prestigePct" class="input small" type="number" value="5" inputmode="numeric"></label>
+            <label class="stack small"><span>Confirmation</span><input id="prestigeConfirm" class="input" placeholder="Type PRESTIGE"></label>
+            <button class="btn danger" id="btnPrestige" type="button">Prestige</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav id="tabbar" aria-label="Bottom navigation">
+      <button class="tab active" data-view="today" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h2v3h8V2h2v3h3v17H3V5h3zM5 9h14v10H5V9z"/></svg>
+        <span>Today</span></button>
+      <button class="tab" data-view="stats" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16v2H4zM6 10h3v7H6zM11 5h3v12h-3zM16 8h3v9h-3z"/></svg>
+        <span>Stats</span></button>
+      <button class="tab" data-view="profile" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5z"/></svg>
+        <span>Profile</span></button>
+    </nav>
+  </div>
+
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Modal"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
