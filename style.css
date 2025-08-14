@@ -365,7 +365,23 @@ html, body, main, .view { overflow-x: hidden; }
 /* ===== Compact task card with expandable details ===== */
 .item{ position:relative; cursor:pointer; max-width:100%; }
 .item .summary{ display:flex; align-items:center; gap:12px; }
-.item .summary .title{ font-weight:700; font-size:18px; }
+/* Summary row = name … badge … [spacer] … 0/2 on far right */
+.item .summary{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+}
+.item .summary .title{
+  font-weight:700;
+  font-size:18px;
+  /* IMPORTANT: no flex:1 here */
+}
+.item .summary .spacer{ flex:1; }          /* pushes count to the edge */
+.item .summary .count{
+  min-width:48px;
+  text-align:right;
+  margin-left:8px;
 .item .summary .spacer{ flex:1; }   /* pushes the count to the far right */
 .item .summary .count{ min-width:42px; text-align:right; }
 .item .summary .count{ font-weight:700; color:#cfd5ff; }
