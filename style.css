@@ -515,3 +515,54 @@ html, body, main, .view{ overflow-x:hidden; }
 @media (max-width:360px){
   .top-split{ grid-template-columns:1fr; }   /* stack if extremely narrow */
 }
+/* Side-by-side layout for the two top cards */
+.top-split{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  margin-bottom:12px;
+}
+@media (min-width:640px){
+  .top-split{ grid-template-columns:1fr 1fr; }
+}
+
+/* Make both top cards compact and equal height */
+#resistCard, #quickCard{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  gap:10px;
+}
+
+/* Partially transparent card, but opaque controls */
+.card.glass{ 
+  background: rgba(16, 24, 52, .38);
+  border: 1px solid rgba(34,48,87,.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.card.glass .input,
+.card.glass .btn,
+.card.glass .switch .slider{
+  background: #0f162e;  /* opaque controls */
+  color: var(--text);
+  border-color: rgba(255,255,255,.08);
+}
+
+/* iOS-style switch */
+.switch{ position:relative; display:inline-block; width:52px; height:30px; }
+.switch input{ display:none; }
+.switch .slider{
+  position:absolute; inset:0; border-radius:999px;
+  background:#36405e; transition:background .18s ease;
+}
+.switch .slider::before{
+  content:"";
+  position:absolute; top:3px; left:3px; width:24px; height:24px;
+  background:#fff; border-radius:50%; transition:transform .18s ease;
+}
+.switch input:checked + .slider{ background:var(--accent); }
+.switch input:checked + .slider::before{ transform:translateX(22px); }
+
+/* Slightly smaller padding on the top cards */
+.card.compact{ padding:12px; }
