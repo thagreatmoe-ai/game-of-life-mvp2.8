@@ -634,7 +634,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // Prestige
   $('#btnPrestige').onclick=()=>{ if($('#prestigeConfirm').value.trim().toUpperCase()!=='PRESTIGE'){ alert('Type PRESTIGE'); return; } const pct=Number($('#prestigePct').value||0); state.user.prestigeBonus=(state.user.prestigeBonus||0)+pct; state.user.avatarStage=Math.min(5,(state.user.avatarStage||0)+1); state.level=1; state.xp=0; state.fields.forEach(f=>{ f.level=1; f.xp=0; }); save(); renderAll(); alert('Prestiged!'); };
 const fab = document.getElementById('fabAddTask');
-if(fab) fab.onclick = () => document.getElementById('btnAddTask')?.click();
+if (fab){
+  // reuse existing +Task logic
+  fab.onclick = () => document.getElementById('btnAddTask')?.click();
+
+  // show only when Today view is active
+  function updateFab(){
+    const isToday = document.getElementById('view-today')?.classList.contains('active');
+    fab.style.display = isToday ? 'flex' : 'none';
+  }
+  updateFab(); // on load
+
+  // update when switching tabs
+  $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
+}
 });
 
 // Utils
