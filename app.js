@@ -316,6 +316,8 @@ function renderShop(){
       renderShop();
       renderHistory();
       renderKPIs();
+      showToast(`Purchased: ${r.name}`, 'ok');
+
     };
 
     box.appendChild(it);
@@ -377,12 +379,16 @@ function completeTask(taskId, amountOr1){
   const tokensGain = tokensFromBase(base);
   state.tokens += tokensGain;
   state.history.push({id:uid(), date:todayKey(), taskId:t.id, name:t.name, base, final:fin, flags:['done'], fieldId:t.fieldId, unit:qt, amount:addUnits, tokens:tokensGain});
-  save(); renderAll();
+  save();
+renderAll();
+showToast('Task logged', 'ok');
 }
 function markStatus(taskId, kind){ // skip or postpone
   const t=state.tasks.find(x=>x.id===taskId); if(!t) return;
   state.history.push({id:uid(), date:todayKey(), taskId:t.id, name:`${kind==='skip'?'Skipped':'Postponed'}: ${t.name}`, base:0, final:0, flags:[kind], fieldId:t.fieldId, unit:t.qtyType, amount:0, tokens:0});
-  save(); renderAll();
+  save();
+renderAll();
+showToast('Undone', 'info');
 }
 function undoRecentForTask(taskId){
   const idx = state.history.slice().reverse().findIndex(h => h.taskId === taskId && h.date === todayKey());
@@ -412,7 +418,8 @@ function undoRecentForTask(taskId){
 
   state.history.splice(i,1);
   save();
-  renderAll();
+renderAll();
+showToast('Undone', 'info');
 }
 
 function undoEntry(id){
@@ -451,7 +458,8 @@ function undoEntry(id){
 
   state.history.splice(i,1);
   save();
-  renderAll();
+renderAll();
+showToast('Undone', 'info');
 }
 
 
@@ -598,7 +606,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('#btnAddTask').onclick=()=> openTasks();
   $('#btnResist').onclick=()=>{ state.day.resistance=!state.day.resistance; save(); renderHeader(); };
   $('#btnProtect').onclick=()=>{ if(confirm('Do you want to protect your streak today?')){ state.streak.protected=true; alert('Today is protected.'); save(); } };
-  $('#btnSaveProfile').onclick=()=>{ state.user.name=$('#profName').value||'Player'; state.user.avatarStage=Number($('#profAvatar').value||0); save(); renderHeader(); };
+  $('#btnSaveProfile').onclick=()=>{ state.user.name=$('#profName').value||'Player'; state.user.avatarStage=Number($('#profAvatar').value||0); save(); renderHeader();showToast('Streak protected for today', 'ok');
+ };
 
   // Quick add helpers
   $('#btnAddTitle')?.addEventListener('click', ()=>{ state.titles.push({id:uid(), name:$('#titleName').value||'Title', boost:Number($('#titleBoost').value||0), scope:$('#titleScope').value}); save(); renderTitles(); });
