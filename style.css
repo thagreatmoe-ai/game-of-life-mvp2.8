@@ -57,3 +57,49 @@ main{padding:12px}
 .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
 .kpi{font-size:22px; font-weight:800}
 .quick{flex-wrap:wrap} .quick .sess{min-width:72px; text-align:center} .quickInput{width:120px}
+/* --- iPhone safe-area + bigger touch targets --- */
+:root {
+  --tabbar-height: 56px;
+}
+
+/* Let the UI reserve space for the notch/status bar and bottom home indicator */
+html, body { height: 100%; }
+body {
+  /* top padding avoids time/battery overlapping content */
+  padding-top: env(safe-area-inset-top);
+  /* bottom padding makes Today content never sit under the tabbar/home indicator */
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-height));
+}
+
+/* If you have a fixed/sticky header, also pad it for the notch */
+.app-header, header, .topbar {
+  position: sticky; top: 0; z-index: 10;
+  padding-top: env(safe-area-inset-top);
+  background: var(--panel, #12172a);
+}
+
+/* Bottom tab bar sits above the iOS home indicator */
+#tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex; align-items: center; justify-content: space-around;
+  background: var(--panel, #12172a);
+  border-top: 1px solid var(--border, #253055);
+}
+
+/* Bigger hamburger & tab buttons (Apple HIG suggests 44x44 minimum) */
+#hamburger, .tab, .btn, .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+/* Fix small label/input wrapping on narrow screens */
+.stack.small.narrow .input.small {
+  min-width: 0;
+}
+.row.gap8 > .stack.small,
+.row.gap8 > .stack.small.narrow {
+  flex: 1 1 160px; /* prevents ugly wrap like “Custom mins” pushing the field down */
+}
