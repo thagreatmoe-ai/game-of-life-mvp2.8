@@ -1,22 +1,35 @@
-// GoL Modern v6.4 — Fix: "times" target respects user value (not forced to 1)
-const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
-const todayKey=()=>new Date().toISOString().slice(0,10);
-const uid=()=>Math.random().toString(36).slice(2,10);
-function save(){localStorage.setItem('gol64', JSON.stringify(state));}
-function load(){try{const a=localStorage.getItem('gol64')||localStorage.getItem('gol63')||localStorage.getItem('gol61')||localStorage.getItem('gol6');return a?JSON.parse(a):{};}catch(e){return{}}}
-// --- Toast helper ---
+// GoL Modern v6.5 — side-by-side header, iOS toggles, safe renders
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const todayKey = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2,10);
+
+function save(){ localStorage.setItem('gol64', JSON.stringify(state)); }
+function load(){
+  try{
+    const a = localStorage.getItem('gol64')
+      || localStorage.getItem('gol63')
+      || localStorage.getItem('gol61')
+      || localStorage.getItem('gol6');
+    return a ? JSON.parse(a) : {};
+  }catch(e){ return {}; }
+}
+
+// --- Toast ---
 let _toastTimer;
 function showToast(msg, type = 'ok'){
-  const el = document.getElementById('toast');
-  if(!el){ alert(msg); return; }  // fallback if the div is missing
+  const el = $('#toast');
+  if(!el){ alert(msg); return; }
   el.textContent = msg;
   el.setAttribute('data-type', type);
   el.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(()=> el.classList.remove('show'), 1600);
 }
-const DEFAULT_LEVELS=[200,300,400,500,600,800,1000,1200,1400,1600,1900,2200,2500];
-const defaultState={
+
+// Defaults
+const DEFAULT_LEVELS = [200,300,400,500,600,800,1000,1200,1400,1600,1900,2200,2500];
+const defaultState = {
   user:{name:'Mohammed', avatarStage:0, prestigeBonus:0},
   theme:{bg:'#0b0f1a', panel:'#12172a', card:'#18203a', text:'#f4f7ff', muted:'#a6b0d6', accent:'#7b8cff', accent2:'#38d39f', danger:'#ff6b6b', border:'#253055'},
   levels:DEFAULT_LEVELS,
@@ -27,41 +40,51 @@ const defaultState={
   fields:[{id:'studying',name:'Studying',xp:0,level:1},{id:'work',name:'Work',xp:0,level:1}],
   tasks:[], titles:[], rewards:[], history:[], templates:[]
 };
-let state=Object.assign({}, defaultState, load());
-applyTheme(state.theme); rolloverIfNeeded();
+let state = Object.assign({}, defaultState, load());
 
-function applyTheme(t){const r=document.documentElement; for(const k in t) r.style.setProperty('--'+k, t[k]);}
+applyTheme(state.theme);
+rolloverIfNeeded();
+
+// THEME
+function applyTheme(t){
+  const r = document.documentElement;
+  for(const k in t) r.style.setProperty('--'+k, t[k]);
+}
 
 // --- rollover & penalties ---
 function rolloverIfNeeded(){
-  const prev=state.day?.date||todayKey(), now=todayKey();
-  if(prev===now) return;
+  const prev = state.day?.date || todayKey();
+  const now  = todayKey();
+  if(prev === now) return;
+
   applyDailyPenalties(prev);
   if(weekIndex(prev)!==weekIndex(now)) applyWeeklyPenalties(prev);
   if(monthIndex(prev)!==monthIndex(now)) applyMonthlyPenalties(prev);
-  state.day={date:now,resistance:false,pointsToday:0}; save();
+
+  state.day = {date:now, resistance:false, pointsToday:0};
+  save();
 }
-function weekIndex(d){const dt=new Date(d); const f=new Date(dt.getFullYear(),0,1); const day=((dt-f)/86400000)+f.getDay(); return Math.floor(day/7);}
-function monthIndex(d){const dt=new Date(d); return dt.getFullYear()*12+dt.getMonth();}
-function rangeWeek(d){const dt=new Date(d); const w=(dt.getDay()+6)%7; const s=new Date(dt); s.setDate(dt.getDate()-w); const e=new Date(s); e.setDate(s.getDate()+6); return [s.toISOString().slice(0,10),e.toISOString().slice(0,10)];}
-function rangeMonth(d){const dt=new Date(d); const s=new Date(dt.getFullYear(),dt.getMonth(),1); const e=new Date(dt.getFullYear(),dt.getMonth()+1,0); return [s.toISOString().slice(0,10),e.toISOString().slice(0,10)];}
-function wasSkippedOrPostponed(id,s,e){return state.history.some(h=>h.taskId===id && h.date>=s && h.date<=e && (h.flags||[]).some(f=>f==='skip'||f==='postpone'));}
+function weekIndex(d){ const dt=new Date(d); const f=new Date(dt.getFullYear(),0,1); const day=((dt-f)/86400000)+f.getDay(); return Math.floor(day/7); }
+function monthIndex(d){ const dt=new Date(d); return dt.getFullYear()*12 + dt.getMonth(); }
+function rangeWeek(d){ const dt=new Date(d); const w=(dt.getDay()+6)%7; const s=new Date(dt); s.setDate(dt.getDate()-w); const e=new Date(s); e.setDate(s.getDate()+6); return [s.toISOString().slice(0,10), e.toISOString().slice(0,10)]; }
+function rangeMonth(d){ const dt=new Date(d); const s=new Date(dt.getFullYear(),dt.getMonth(),1); const e=new Date(dt.getFullYear(),dt.getMonth()+1,0); return [s.toISOString().slice(0,10), e.toISOString().slice(0,10)]; }
+function wasSkippedOrPostponed(id,s,e){
+  return state.history.some(h=>h.taskId===id && h.date>=s && h.date<=e && (h.flags||[]).some(f=>f==='skip'||f==='postpone'));
+}
 function tokenRewardFor(t){ return Number(t.tokenReward ?? Math.floor((t.points||0)/5)); }
 function penaltyFor(t){ return tokenRewardFor(t)*3; }
 
-// FIXED: compute period target correctly based on frequency
+// Correct period target
 function targetForFreq(t){
-  // For daily/once we use qtyValue (per-day target for "times"/minutes/hours)
   if(t.freq==='daily' || t.freq==='once') return Number(t.qtyValue || 1);
-  // For weekly/custom/monthly we use periodTarget (fallback to qtyValue)
   return Number((t.periodTarget!=null ? t.periodTarget : t.qtyValue) || 1);
 }
 
 function progressForRange(t,s,e){
-  const rows=state.history.filter(h=>h.taskId===t.id && h.date>=s && h.date<=e && h.final>0);
-  const u=t.qtyType||'times';
-  const val=(u==='times')?rows.length:rows.reduce((a,b)=>a+(b.amount||0),0);
-  const target=targetForFreq(t);
+  const rows = state.history.filter(h=>h.taskId===t.id && h.date>=s && h.date<=e && h.final>0);
+  const u = t.qtyType || 'times';
+  const val = (u==='times') ? rows.length : rows.reduce((a,b)=>a+(b.amount||0),0);
+  const target = targetForFreq(t);
   return {val,target,done:val>=target,unit:u,remaining:Math.max(0,target-val)};
 }
 
@@ -71,8 +94,15 @@ function applyDailyPenalties(day){
     if(t.freq!=='daily' && t.freq!=='once') return;
     if(wasSkippedOrPostponed(t.id,day,day)) return;
     const pr=progressForRange(t,day,day);
-    if(!pr.done){ const loss=penaltyFor(t); if(loss>0){ state.tokens-=loss; state.history.push({id:uid(),date:day,taskId:t.id,name:`Penalty: ${t.name}`,base:0,final:0,flags:['penalty','daily'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss}); } }
-  }); save();
+    if(!pr.done){
+      const loss=penaltyFor(t);
+      if(loss>0){
+        state.tokens -= loss;
+        state.history.push({id:uid(),date:day,taskId:t.id,name:`Penalty: ${t.name}`,base:0,final:0,flags:['penalty','daily'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss});
+      }
+    }
+  });
+  save();
 }
 function applyWeeklyPenalties(day){
   const [s,e]=rangeWeek(day);
@@ -80,8 +110,15 @@ function applyWeeklyPenalties(day){
     if(t.freq!=='weekly' && t.freq!=='custom') return;
     if(wasSkippedOrPostponed(t.id,s,e)) return;
     const pr=progressForRange(t,s,e);
-    if(!pr.done){ const loss=penaltyFor(t); if(loss>0){ state.tokens-=loss; state.history.push({id:uid(),date:e,taskId:t.id,name:`Penalty (week): ${t.name}`,base:0,final:0,flags:['penalty','week'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss}); } }
-  }); save();
+    if(!pr.done){
+      const loss=penaltyFor(t);
+      if(loss>0){
+        state.tokens -= loss;
+        state.history.push({id:uid(),date:e,taskId:t.id,name:`Penalty (week): ${t.name}`,base:0,final:0,flags:['penalty','week'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss});
+      }
+    }
+  });
+  save();
 }
 function applyMonthlyPenalties(day){
   const [s,e]=rangeMonth(day);
@@ -89,20 +126,66 @@ function applyMonthlyPenalties(day){
     if(t.freq!=='monthly') return;
     if(wasSkippedOrPostponed(t.id,s,e)) return;
     const pr=progressForRange(t,s,e);
-    if(!pr.done){ const loss=penaltyFor(t); if(loss>0){ state.tokens-=loss; state.history.push({id:uid(),date:e,taskId:t.id,name:`Penalty (month): ${t.name}`,base:0,final:0,flags:['penalty','month'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss}); } }
-  }); save();
+    if(!pr.done){
+      const loss=penaltyFor(t);
+      if(loss>0){
+        state.tokens -= loss;
+        state.history.push({id:uid(),date:e,taskId:t.id,name:`Penalty (month): ${t.name}`,base:0,final:0,flags:['penalty','month'],fieldId:t.fieldId,unit:t.qtyType,amount:0,tokens:-loss});
+      }
+    }
+  });
+  save();
 }
 
 // XP & Fields
-function xpReq(l){return state.levels[l-1]||state.levels.at(-1)}
-function fieldReq(l){return 200+(l-1)*100}
-function getField(id){return state.fields.find(f=>f.id===id)}
-function adjustMainXP(d){ if(d>0){ state.xp+=d; while(state.level<=state.levels.length && state.xp>=xpReq(state.level)){ state.xp-=xpReq(state.level); state.level++; } } else if(d<0){ let k=-d; while(k>0){ if(state.xp>=k){ state.xp-=k; k=0; break;} else { k-=state.xp; if(state.level>1){ state.level--; state.xp=xpReq(state.level)-1; } else { state.xp=0; k=0; } } } } }
-function adjustFieldXP(id,d){ const f=getField(id); if(!f) return; if(d>0){ f.xp+=d; while(f.xp>=fieldReq(f.level)){ f.xp-=fieldReq(f.level); f.level++; } } else if(d<0){ let k=-d; while(k>0){ if(f.xp>=k){ f.xp-=k; k=0; break;} else{ k-=f.xp; if(f.level>1){ f.level--; f.xp=fieldReq(f.level)-1; } else { f.xp=0; k=0; } } } } }
-function finalPoints(base){ const a=1+(state.titles.filter(t=>t.scope==='always').reduce((x,y)=>x+y.boost,0))/100; const r=state.day.resistance?1+state.config.resistHourBonus/100:1; const s=state.day.pointsToday>state.config.staminaLimit?2:1; const d=1+(state.titles.filter(t=>t.scope==='daily').reduce((x,y)=>x+y.boost,0))/100; const wm=1+(state.titles.filter(t=>t.scope==='week'||t.scope==='month').reduce((x,y)=>x+y.boost,0))/100; return Math.floor(base*a*r*s*d*wm);}
+function xpReq(l){ return state.levels[l-1] || state.levels.at(-1); }
+function fieldReq(l){ return 200 + (l-1)*100; }
+function getField(id){ return state.fields.find(f=>f.id===id); }
+function adjustMainXP(d){
+  if(d>0){
+    state.xp+=d;
+    while(state.level<=state.levels.length && state.xp>=xpReq(state.level)){
+      state.xp-=xpReq(state.level); state.level++;
+    }
+  }else if(d<0){
+    let k=-d;
+    while(k>0){
+      if(state.xp>=k){ state.xp-=k; k=0; break; }
+      else{
+        k-=state.xp;
+        if(state.level>1){ state.level--; state.xp=xpReq(state.level)-1; }
+        else{ state.xp=0; k=0; }
+      }
+    }
+  }
+}
+function adjustFieldXP(id,d){
+  const f=getField(id); if(!f) return;
+  if(d>0){
+    f.xp+=d; while(f.xp>=fieldReq(f.level)){ f.xp-=fieldReq(f.level); f.level++; }
+  }else if(d<0){
+    let k=-d;
+    while(k>0){
+      if(f.xp>=k){ f.xp-=k; k=0; break; }
+      else{
+        k-=f.xp;
+        if(f.level>1){ f.level--; f.xp=fieldReq(f.level)-1; }
+        else{ f.xp=0; k=0; }
+      }
+    }
+  }
+}
+function finalPoints(base){
+  const a=1+(state.titles.filter(t=>t.scope==='always').reduce((x,y)=>x+y.boost,0))/100;
+  const r=state.day.resistance?1+state.config.resistHourBonus/100:1;
+  const s=state.day.pointsToday>state.config.staminaLimit?2:1;
+  const d=1+(state.titles.filter(t=>t.scope==='daily').reduce((x,y)=>x+y.boost,0))/100;
+  const wm=1+(state.titles.filter(t=>t.scope==='week'||t.scope==='month').reduce((x,y)=>x+y.boost,0))/100;
+  return Math.floor(base*a*r*s*d*wm);
+}
 function tokensFromBase(base){ return Math.floor(base/5); }
 
-// Recurrence / progress helpers
+// Recurrence
 function isTaskActiveToday(t){ if(state.level<(t.levelReq||1)) return false; return isTaskActiveOnDate(t, todayKey()); }
 function isTaskActiveOnDate(t, d){
   if(t.freq==='daily') return true;
@@ -116,28 +199,62 @@ function isTaskActiveOnDate(t, d){
   if(t.freq==='monthly'){ const [s,e]=rangeMonth(d); const pr=progressForRange(t,s,e); return !pr.done; }
   return true;
 }
-function progressNow(t){ const d=todayKey(); if(t.freq==='daily'||t.freq==='once'){return progressForRange(t,d,d);} if(t.freq==='weekly'||t.freq==='custom'){const [s,e]=rangeWeek(d); return progressForRange(t,s,e);} if(t.freq==='monthly'){const [s,e]=rangeMonth(d); return progressForRange(t,s,e);} return {val:0,target:1,done:false,unit:t.qtyType,remaining:1}; }
-function unitLabel(u){return u==='times'?'times':(u==='minutes'?'min':'h');}
+function progressNow(t){
+  const d=todayKey();
+  if(t.freq==='daily'||t.freq==='once') return progressForRange(t,d,d);
+  if(t.freq==='weekly'||t.freq==='custom'){ const [s,e]=rangeWeek(d); return progressForRange(t,s,e); }
+  if(t.freq==='monthly'){ const [s,e]=rangeMonth(d); return progressForRange(t,s,e); }
+  return {val:0,target:1,done:false,unit:t.qtyType,remaining:1};
+}
+function unitLabel(u){ return u==='times'?'times':(u==='minutes'?'min':'h'); }
 
 // Render
 function renderHeader(){
-  $('#dateStr').textContent=new Date().toLocaleDateString();
-  $('#level').textContent=state.level; const req=xpReq(state.level)||0; $('#xp').textContent=state.xp; $('#xpReq').textContent=req;
-  $('#tokens').textContent=state.tokens; $('#prestigeBonus').textContent=state.user.prestigeBonus||0; $('#avatarBox').textContent='L'+state.level; $('#avatarBig').textContent='L'+state.level;
-  $('#resistState').textContent=state.day.resistance?'ON':'OFF';
-  const pct=Math.min(100, req?state.xp/req*100:0); $('#xpBar').style.width=pct+'%';
-  $('#userName').textContent=state.user.name; $('#profName').value=state.user.name; $('#profAvatar').value=state.user.avatarStage||0;
-}
-function latestStatusFor(t){ const d=todayKey(); const row=state.history.slice().reverse().find(h=>h.taskId===t.id && h.date===d && (h.flags||[]).some(f=>f==='skip'||f==='postpone')); if(!row) return null; return (row.flags||[]).includes('skip')?'skip':'postpone'; }
-function renderTaskCard({t, p, status}){
-  // t = task, p = progressNow(t), status = 'skip'|'postpone'|null
-  const el = document.createElement('div');
-  el.className = 'item' +
-    (p.done ? ' done' : '') +
-    (status==='skip' ? ' skipped' : '') +
-    (status==='postpone' ? ' postponed' : '');
+  $('#dateStr').textContent = new Date().toLocaleDateString();
 
-  const unitLabel = (t.qtyType==='minutes'?'min':(t.qtyType==='hours'?'h':'times'));
+  // chips
+  $('#level').textContent = state.level;
+  const req = xpReq(state.level) || 0;
+  $('#xp').textContent = state.xp;
+  $('#xpReq').textContent = req;
+  $('#tokens').textContent = state.tokens;
+
+  // avatar / profile
+  $('#prestigeBonus').textContent = state.user.prestigeBonus || 0;
+  const ab = $('#avatarBox'); if(ab) ab.textContent = 'L' + state.level;
+  const abig = $('#avatarBig'); if(abig) abig.textContent = 'L' + state.level;
+  $('#userName').textContent = state.user.name;
+  const pn = $('#profName'); if(pn) pn.value = state.user.name;
+  const pa = $('#profAvatar'); if(pa) pa.value = state.user.avatarStage || 0;
+
+  // XP bar (safe if element exists)
+  const pct = Math.min(100, req ? (state.xp / req * 100) : 0);
+  const xpEl = $('#xpBar'); if (xpEl) xpEl.style.width = pct + '%';
+
+  // Resistance UI sync
+  const rToggle = $('#resistToggle');     // preferred (iOS switch)
+  const rBtn    = $('#btnResist');        // fallback button
+  const rText   = $('#resistState');      // optional tiny text inside button
+  if(rToggle){ rToggle.checked = !!state.day.resistance; }
+  if(rText){   rText.textContent = state.day.resistance ? 'ON' : 'OFF'; }
+  if(rBtn){    rBtn.classList.toggle('active', !!state.day.resistance); }
+}
+
+function latestStatusFor(t){
+  const d=todayKey();
+  const row=state.history.slice().reverse().find(h=>h.taskId===t.id && h.date===d && (h.flags||[]).some(f=>f==='skip'||f==='postpone'));
+  if(!row) return null;
+  return (row.flags||[]).includes('skip')?'skip':'postpone';
+}
+
+function renderTaskCard({t, p, status}){
+  const el = document.createElement('div');
+  el.className = 'item'
+    + (p.done ? ' done' : '')
+    + (status==='skip' ? ' skipped' : '')
+    + (status==='postpone' ? ' postponed' : '');
+
+  const unitTxt = (t.qtyType==='minutes'?'min':(t.qtyType==='hours'?'h':'times'));
   const tokensUnit = Math.floor((t.points||0)/5);
   const penaltyTok = tokensUnit * 3;
   const fieldName = getField(t.fieldId)?.name || '—';
@@ -151,7 +268,7 @@ function renderTaskCard({t, p, status}){
   const progressPct = p.target ? Math.min(100, (p.val/p.target*100)) : 0;
 
   el.innerHTML = `
-      <div class="summary">
+    <div class="summary">
       <strong class="title">${t.name}</strong>
       ${badge}
       <span class="spacer"></span>
@@ -167,7 +284,7 @@ function renderTaskCard({t, p, status}){
         <div class="sub small">Penalty: <b>${penaltyTok}</b></div>
         <div class="sub small">Field: <b>${fieldName}</b></div>
         <div class="sub small">Freq: <b>${t.freq}</b></div>
-        <div class="sub small">Qty type: <b>${unitLabel}</b></div>
+        <div class="sub small">Qty type: <b>${unitTxt}</b></div>
       </div>
 
       <div class="actions">
@@ -182,7 +299,7 @@ function renderTaskCard({t, p, status}){
 
         ${ t.qtyType==='times' ? '' : `
         <label class="stack small" style="display:flex;flex-direction:column;gap:6px;">
-          <span style="font-size:var(--small);color:var(--muted)">Amount (${unitLabel})</span>
+          <span style="font-size:var(--small);color:var(--muted)">Amount (${unitTxt})</span>
           <input type="number" class="input small addQty" data-id="${t.id}" placeholder="${t.qtyType==='minutes'?'10':'1'}" inputmode="numeric">
         </label>`}
 
@@ -193,12 +310,11 @@ function renderTaskCard({t, p, status}){
       </div>
     </div>
   `;
-el.classList.remove('open');   // start collapsed
-  // Toggle open/close when tapping the header area
-  el.querySelector('.summary').onclick = (e)=>{ el.classList.toggle('open'); };
 
-  // Don’t toggle the card when interacting with controls
-  el.querySelector('.details').addEventListener('click', (ev)=>{ ev.stopPropagation(); });
+  // Start collapsed; toggle only when header row tapped
+  el.classList.remove('open');
+  el.querySelector('.summary').onclick = () => el.classList.toggle('open');
+  el.querySelector('.details').addEventListener('click', ev => ev.stopPropagation());
 
   // Actions
   el.querySelector('.applyBtn').onclick = ()=>{
@@ -226,31 +342,50 @@ el.classList.remove('open');   // start collapsed
 
   el.querySelector('.editTask').onclick = (ev)=>{
     ev.stopPropagation();
-    openTasks && openTasks(); // takes you to the Tasks manager to edit
+    openTasks && openTasks();
     showToast('Open “Tasks” to edit', 'info');
   };
 
   return el;
 }
+
 function renderToday(){
-  const list=$('#todayTasks'); list.innerHTML='';
-  const items=state.tasks.filter(t=>isTaskActiveToday(t)); // hide locked/inactive
+  const list=$('#todayTasks'); if(!list) return;
+  list.innerHTML='';
+  const items=state.tasks.filter(t=>isTaskActiveToday(t));
   const A=[], S=[], P=[], D=[];
-  items.forEach(t=>{ const p=progressNow(t), status=latestStatusFor(t); const d={t,p,status}; if(status==='skip') S.push(d); else if(status==='postpone') P.push(d); else if(p.done) D.push(d); else A.push(d); });
+  items.forEach(t=>{
+    const p=progressNow(t), status=latestStatusFor(t);
+    const d={t,p,status};
+    if(status==='skip') S.push(d);
+    else if(status==='postpone') P.push(d);
+    else if(p.done) D.push(d);
+    else A.push(d);
+  });
   [A,S,P,D].forEach(g=>g.forEach(d=>list.appendChild(renderTaskCard(d))));
-  if(items.length===0){ const e=document.createElement('div'); e.className='sub small'; e.textContent='No tasks due today.'; list.appendChild(e); }
+  if(items.length===0){
+    const e=document.createElement('div'); e.className='sub small'; e.textContent='No tasks due today.'; list.appendChild(e);
+  }
 }
+
 function renderFields(){
-  const box=$('#fieldsList'); box.innerHTML='';
-  state.fields.forEach(f=>{ const req=fieldReq(f.level), pct=Math.min(100, req?(f.xp/req*100):0);
+  const box=$('#fieldsList'); if(!box) return;
+  box.innerHTML='';
+  state.fields.forEach(f=>{
+    const req=fieldReq(f.level), pct=Math.min(100, req?(f.xp/req*100):0);
     const it=document.createElement('div'); it.className='item';
-    it.innerHTML=`<div class="grow"><strong>${f.name}</strong><div class="bar" style="margin-top:6px"><div class="fill" style="width:${pct}%"></div></div><div class="sub small">Level ${f.level} • ${f.xp}/${req}</div></div><button class="btn alt small" data-id="${f.id}">Delete</button>`;
+    it.innerHTML=`<div class="grow"><strong>${f.name}</strong>
+      <div class="bar" style="margin-top:6px"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="sub small">Level ${f.level} • ${f.xp}/${req}</div></div>
+      <button class="btn alt small" data-id="${f.id}">Delete</button>`;
     it.querySelector('button').onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.fields=state.fields.filter(x=>x.id!==f.id); save(); renderFields(); };
     box.appendChild(it);
   });
 }
+
 function renderTitles(){
-  const box=$('#titleList'); box.innerHTML='';
+  const box=$('#titleList'); if(!box) return;
+  box.innerHTML='';
   if(state.titles.length===0){ box.innerHTML='<div class="sub small">No titles yet.</div>'; return; }
   state.titles.forEach(t=>{
     const it=document.createElement('div'); it.className='item';
@@ -259,7 +394,8 @@ function renderTitles(){
     box.appendChild(it);
   });
 }
-// ---- Helpers for purchases / tokens ----
+
+// Purchases / tokens helpers
 function autoRefundPurchases(amountNeeded){
   let needed = Math.max(0, Number(amountNeeded)||0);
   if(needed <= 0) return;
@@ -273,8 +409,9 @@ function autoRefundPurchases(amountNeeded){
   }
   save();
 }
+
 function renderShop(){
-  const box = $('#shopList');
+  const box = $('#shopList'); if(!box) return;
   box.innerHTML = '';
   if(state.rewards.length === 0){
     box.innerHTML = '<div class="sub small">No rewards yet.</div>';
@@ -294,16 +431,13 @@ function renderShop(){
       <button class="btn alt small del">Delete</button>
     `;
 
-    // Delete reward
     it.querySelector('.del').onclick = () => {
       if(!confirm('You sure you want to delete this?')) return;
       state.rewards = state.rewards.filter(x => x.id !== r.id);
       save(); renderShop();
     };
 
-    // Buy with confirmation + history entry (undoable)
-    const buyBtn = it.querySelector('.buyBtn');
-    buyBtn.onclick = () => {
+    it.querySelector('.buyBtn').onclick = () => {
       if(state.tokens < r.cost) return;
       if(!confirm(`Buy "${r.name}" for ${r.cost} tokens?`)) return;
 
@@ -315,7 +449,7 @@ function renderShop(){
         name: `Purchase: ${r.name}`,
         base: 0,
         final: 0,
-        tokens: -r.cost,          // negative = spent
+        tokens: -r.cost,
         flags: ['purchase']
       });
 
@@ -324,12 +458,8 @@ function renderShop(){
       }
 
       save();
-      renderHeader();
-      renderShop();
-      renderHistory();
-      renderKPIs();
+      renderHeader(); renderShop(); renderHistory(); renderKPIs();
       showToast(`Purchased: ${r.name}`, 'ok');
-
     };
 
     box.appendChild(it);
@@ -337,9 +467,8 @@ function renderShop(){
 }
 
 function renderHistory(){
-  const tb = $('#histTable tbody');
+  const tb = $('#histTable tbody'); if(!tb) return;
   tb.innerHTML = '';
-
   state.history.slice().reverse().forEach(h=>{
     const isPurchase = (h.flags || []).includes('purchase');
     const within7 = (new Date(todayKey()) - new Date(h.date)) <= 7 * 86400000;
@@ -371,6 +500,7 @@ function renderKPIs(){
   $('#kpiTokens').textContent=state.tokens;
   $('#kpiStreakD').textContent=state.streak.d;
 }
+
 function renderAll(){ renderHeader(); renderToday(); renderFields(); renderTitles(); renderShop(); renderHistory(); renderKPIs(); }
 
 // Actions
@@ -392,15 +522,15 @@ function completeTask(taskId, amountOr1){
   state.tokens += tokensGain;
   state.history.push({id:uid(), date:todayKey(), taskId:t.id, name:t.name, base, final:fin, flags:['done'], fieldId:t.fieldId, unit:qt, amount:addUnits, tokens:tokensGain});
   save();
-renderAll();
-showToast('Task logged', 'ok');
+  renderAll();
+  showToast('Task logged', 'ok');
 }
-function markStatus(taskId, kind){ // skip or postpone
+function markStatus(taskId, kind){
   const t=state.tasks.find(x=>x.id===taskId); if(!t) return;
   state.history.push({id:uid(), date:todayKey(), taskId:t.id, name:`${kind==='skip'?'Skipped':'Postponed'}: ${t.name}`, base:0, final:0, flags:[kind], fieldId:t.fieldId, unit:t.qtyType, amount:0, tokens:0});
   save();
-renderAll();
-showToast('Undone', 'info');
+  renderAll();
+  showToast('Undone', 'info');
 }
 function undoRecentForTask(taskId){
   const idx = state.history.slice().reverse().findIndex(h => h.taskId === taskId && h.date === todayKey());
@@ -430,10 +560,9 @@ function undoRecentForTask(taskId){
 
   state.history.splice(i,1);
   save();
-renderAll();
-showToast('Undone', 'info');
+  renderAll();
+  showToast('Undone', 'info');
 }
-
 function undoEntry(id){
   const i = state.history.findIndex(h => h.id === id);
   if(i < 0) return;
@@ -445,7 +574,7 @@ function undoEntry(id){
     if(!within7){ alert('Undo window passed'); return; }
   }
 
-  const tokenDelta = h.tokens || 0; // + earned, - purchase
+  const tokenDelta = h.tokens || 0;
   if(tokenDelta > 0){
     const wouldBe = state.tokens - tokenDelta;
     if(wouldBe < 0){
@@ -466,16 +595,15 @@ function undoEntry(id){
     adjustMainXP(-h.final);
     adjustFieldXP(h.fieldId, -h.final);
   }
-  state.tokens -= tokenDelta;   // refund if purchase; subtract if earned
+  state.tokens -= tokenDelta;
 
   state.history.splice(i,1);
   save();
-renderAll();
-showToast('Undone', 'info');
+  renderAll();
+  showToast('Undone', 'info');
 }
 
-
-// Sheets
+// Sheets (Tasks/Fields/Titles/Rewards/Theme/Backup/Settings) — unchanged except minor safety
 function openTasks(){
   const rows = state.tasks.map(t=>`<div class="item"><div class="grow"><strong>${t.name}</strong><div class="sub small">Points: ${t.points} • Tokens/unit: ${tokenRewardFor(t)} • Penalty: ${penaltyFor(t)} • Field: ${getField(t.fieldId)?.name||'—'} • Lvl req: ${t.levelReq||1} • Freq: ${t.freq}${t.freq!=='daily'?` (target: ${targetForFreq(t)})`:''} • Qty/unit: ${t.qtyValue} ${unitLabel(t.qtyType)}</div></div><button class="btn alt small" data-id="${t.id}">Delete</button></div>`).join('') || '<div class="sub small">No tasks yet.</div>';
   openSheet(`<div class="row-between"><h3>Tasks</h3><button class="btn alt small" id="closeSheet">Close</button></div>
@@ -505,8 +633,8 @@ function openTasks(){
   </div>`);
   $('#closeSheet').onclick=closeSheet;
 
-  // populate fields list
-  const sel=$('#tField'); sel.innerHTML = state.fields.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  // populate fields
+  const sel=$('#tField'); if(sel) sel.innerHTML = state.fields.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
 
   // auto tokens calc
   function recalcTokens(){
@@ -517,8 +645,10 @@ function openTasks(){
   }
   $('#tPts').oninput=recalcTokens; recalcTokens();
 
-  const qtySel=$('#tQtyType'), qtyLbl=$('#tQtyLabel'), freqSel=$('#tFreq'), perRow=$('#perTargetRow'), perLbl=$('#tPerTargetLabel');
-  qtySel.onchange=()=>{ qtyLbl.textContent = qtySel.value==='times'?'Target (times)':(qtySel.value==='minutes'?'Target (minutes)':'Target (hours)'); };
+  const qtySel=$('#tQtyType'), qtyLbl=$('#tQtyLabel'), freqSel=$('#tFreq'), perRow=$('#perTargetRow');
+  if(qtySel && qtyLbl){
+    qtySel.onchange=()=>{ qtyLbl.textContent = qtySel.value==='times'?'Target (times)':(qtySel.value==='minutes'?'Target (minutes)':'Target (hours)'); };
+  }
   function onFreqChange(){
     const v=freqSel.value;
     const show = !(v==='daily'||v==='once');
@@ -557,7 +687,7 @@ function openTitles(){
       <button class="btn" id="btnAddT">+ Title</button>
     </div>`);
   $('#closeSheet').onclick=closeSheet;
-  $$('#sheet .item .btn').forEach(b=> b.onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.titles=state.titles.filter(x=>x.id!==b.dataset.id); save(); openTitles(); renderTitles(); });
+  $$('#sheet .item .btn').forEach(b=> b.onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.titles=state.titles.filter(x=>x.id!==t.dataset.id); save(); openTitles(); renderTitles(); });
   $('#btnAddT').onclick=()=>{ state.titles.push({id:uid(), name:$('#ttlName').value||'Title', boost:Number($('#ttlBoost').value||0), scope:$('#ttlScope').value}); save(); openTitles(); renderTitles(); };
 }
 function openRewards(){
@@ -606,90 +736,129 @@ function openSettings(){
 }
 
 // Router / events
-function router(view){ $$('#tabbar .tab').forEach(t=>t.classList.toggle('active', t.dataset.view===view)); $$('.view').forEach(v=>v.classList.remove('active')); $('#view-'+view).classList.add('active'); $('#topTitle').textContent=view[0].toUpperCase()+view.slice(1); }
+function router(view){
+  $$('#tabbar .tab').forEach(t=>t.classList.toggle('active', t.dataset.view===view));
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#view-'+view).classList.add('active');
+  $('#topTitle').textContent = view[0].toUpperCase()+view.slice(1);
+}
+
 function toggleDrawer(open){ $('#drawer').classList.toggle('open', open); $('#backdrop').style.display=open?'block':'none'; }
 
 window.addEventListener('DOMContentLoaded', ()=>{
   renderAll();
+
+  // Nav & drawer
   $$('#tabbar .tab').forEach(b=> b.onclick=()=> router(b.dataset.view));
   $('#hamburger').onclick=()=> toggleDrawer(true);
   $('#backdrop').onclick=()=> toggleDrawer(false);
-  $$('#drawer .nav-item').forEach(b=> b.onclick=()=>{ toggleDrawer(false); const name=b.dataset.open;   if(name==='tasks'){ document.body.classList.remove('addMode'); openTasks(); }
- if(name==='fields') openFields(); if(name==='titles') openTitles(); if(name==='rewards') openRewards(); if(name==='theme') openTheme(); if(name==='backup') openBackup(); if(name==='settings') openSettings(); });
-  $('#btnAddTask').onclick=()=> openTasks();
-  $('#btnResist').onclick=()=>{ state.day.resistance=!state.day.resistance; save(); renderHeader(); };
-  $('#btnProtect').onclick=()=>{ if(confirm('Do you want to protect your streak today?')){ state.streak.protected=true; alert('Today is protected.'); save(); } };
-  $('#btnSaveProfile').onclick=()=>{ state.user.name=$('#profName').value||'Player'; state.user.avatarStage=Number($('#profAvatar').value||0); save(); renderHeader();showToast('Streak protected for today', 'ok');
- };
+  $$('#drawer .nav-item').forEach(b=> b.onclick=()=>{
+    toggleDrawer(false);
+    const name=b.dataset.open;
+    if(name==='tasks'){ document.body.classList.remove('addMode'); openTasks(); }
+    if(name==='fields') openFields();
+    if(name==='titles') openTitles();
+    if(name==='rewards') openRewards();
+    if(name==='theme') openTheme();
+    if(name==='backup') openBackup();
+    if(name==='settings') openSettings();
+  });
 
-  // Quick add helpers
-  $('#btnAddTitle')?.addEventListener('click', ()=>{ state.titles.push({id:uid(), name:$('#titleName').value||'Title', boost:Number($('#titleBoost').value||0), scope:$('#titleScope').value}); save(); renderTitles(); });
-  $('#btnAddReward')?.addEventListener('click', ()=>{ state.rewards.push({id:uid(), name:$('#rewardName').value||'Reward', cost:Number($('#rewardCost').value||0), type:$('#rewardType').value}); save(); renderShop(); });
-  $('#btnAddField')?.addEventListener('click', ()=>{ const nm=$('#fieldName').value||'Field'; state.fields.push({id:uid(), name:nm, xp:0, level:1}); save(); renderFields(); });
+  // “+ Task” header button (kept for desktop); FAB triggers this too
+  $('#btnAddTask')?.addEventListener('click', ()=> openTasks());
 
-  // Focus session
-  let sessM=25, timer=null, left=0;
-  $$('.sess').forEach(b=> b.onclick=()=>{ sessM=Number(b.dataset.m); $('#customMin').value=''; });
-  // Toggle-based start/stop
-const sessToggle = $('#sessToggle');
-if (sessToggle){
-  sessToggle.addEventListener('change', ()=>{
-    if (sessToggle.checked){
-      const cm = Number($('#customMin').value || sessM);
-      if (cm <= 0){ sessToggle.checked = false; return; }
-      left = cm * 60;
-      clearInterval(timer);
-      $('#timerBox').textContent = `Session ${cm}m started…`;
-      $('#sessToggleText').textContent = 'On';
-      timer = setInterval(()=>{
-        left--;
-        if(left <= 0){
-          clearInterval(timer); timer=null;
-          $('#timerBox').textContent='Session complete — log your task now!';
-          $('#sessToggle').checked = false;
-          $('#sessToggleText').textContent = 'Off';
-          navigator.vibrate?.(200);
-        }else{
-          const m=Math.floor(left/60), s=left%60;
-          $('#timerBox').textContent=`Time left ${m}:${String(s).padStart(2,'0')}`;
-        }
-      }, 1000);
-    } else {
-      clearInterval(timer); timer=null;
-      $('#timerBox').textContent='Session stopped.';
-      $('#sessToggleText').textContent = 'Off';
-      navigator.vibrate?.(50);
+  // Resistance — support either iOS switch (#resistToggle) or fallback button (#btnResist)
+  const resistToggle = $('#resistToggle');
+  if(resistToggle){
+    resistToggle.checked = !!state.day.resistance;
+    resistToggle.addEventListener('change', ()=>{
+      state.day.resistance = resistToggle.checked;
+      save(); renderHeader();
+    });
+  }
+  const resistBtn = $('#btnResist');
+  if(resistBtn && !resistToggle){
+    resistBtn.onclick = ()=>{
+      state.day.resistance = !state.day.resistance;
+      save(); renderHeader();
+    };
+  }
+  $('#btnProtect')?.addEventListener('click', ()=>{
+    if(confirm('Do you want to protect your streak today?')){
+      state.streak.protected = true; save();
+      showToast('Streak protected for today', 'ok');
     }
   });
-}
+
+  // Profile
+  $('#btnSaveProfile')?.addEventListener('click', ()=>{
+    state.user.name = $('#profName').value || 'Player';
+    state.user.avatarStage = Number($('#profAvatar').value || 0);
+    save(); renderHeader();
+    showToast('Profile saved', 'ok');
+  });
+
+  // Focus session (toggle only; no preset buttons)
+  let timer=null, left=0;
+  const sessToggle = $('#sessToggle');
+  if(sessToggle){
+    sessToggle.addEventListener('change', ()=>{
+      if(sessToggle.checked){
+        const cm = Number($('#customMin')?.value || 0);
+        if (cm <= 0){ sessToggle.checked = false; return; }
+        left = cm * 60;
+        clearInterval(timer);
+        const label = $('#sessToggleText'); if(label) label.textContent = 'On';
+        const tb = $('#timerBox'); if(tb) tb.textContent = `Session ${cm}m started…`;
+        timer = setInterval(()=>{
+          left--;
+          if(left <= 0){
+            clearInterval(timer); timer=null;
+            if($('#timerBox')) $('#timerBox').textContent='Session complete — log your task now!';
+            sessToggle.checked = false;
+            const label2 = $('#sessToggleText'); if(label2) label2.textContent = 'Off';
+            navigator.vibrate?.(200);
+          }else{
+            const m=Math.floor(left/60), s=left%60;
+            if($('#timerBox')) $('#timerBox').textContent=`Time left ${m}:${String(s).padStart(2,'0')}`;
+          }
+        }, 1000);
+      }else{
+        clearInterval(timer); timer=null;
+        if($('#timerBox')) $('#timerBox').textContent='Session stopped.';
+        const label = $('#sessToggleText'); if(label) label.textContent = 'Off';
+        navigator.vibrate?.(50);
+      }
+    });
+  }
 
   // Prestige
-  $('#btnPrestige').onclick=()=>{ if($('#prestigeConfirm').value.trim().toUpperCase()!=='PRESTIGE'){ alert('Type PRESTIGE'); return; } const pct=Number($('#prestigePct').value||0); state.user.prestigeBonus=(state.user.prestigeBonus||0)+pct; state.user.avatarStage=Math.min(5,(state.user.avatarStage||0)+1); state.level=1; state.xp=0; state.fields.forEach(f=>{ f.level=1; f.xp=0; }); save(); renderAll(); alert('Prestiged!'); };
-const fab = document.getElementById('fabAddTask');
-if (fab){
-  // reuse existing +Task logic
-    // reuse existing +Task logic, but mark "add-only" mode
-  fab.onclick = () => {
-    document.body.classList.add('addMode');
-    document.getElementById('btnAddTask')?.click();
-  };
+  $('#btnPrestige')?.addEventListener('click', ()=>{
+    if($('#prestigeConfirm').value.trim().toUpperCase()!=='PRESTIGE'){ alert('Type PRESTIGE'); return; }
+    const pct=Number($('#prestigePct').value||0);
+    state.user.prestigeBonus=(state.user.prestigeBonus||0)+pct;
+    state.user.avatarStage=Math.min(5,(state.user.avatarStage||0)+1);
+    state.level=1; state.xp=0;
+    state.fields.forEach(f=>{ f.level=1; f.xp=0; });
+    save(); renderAll(); alert('Prestiged!');
+  });
 
-
-  // show only when Today view is active
-  function updateFab(){
-    const isToday = document.getElementById('view-today')?.classList.contains('active');
-    fab.style.display = isToday ? 'flex' : 'none';
+  // Floating +Task FAB
+  const fab = $('#fabAddTask');
+  if (fab){
+    fab.onclick = () => {
+      document.body.classList.add('addMode');
+      $('#btnAddTask')?.click();
+    };
+    function updateFab(){
+      const isToday = $('#view-today')?.classList.contains('active');
+      fab.style.display = isToday ? 'flex' : 'none';
+    }
+    updateFab();
+    $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
   }
-  updateFab(); // on load
-
-  // update when switching tabs
-  $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
-}
 });
 
 // Utils
 function openSheet(html){ const s=$('#sheet'); s.innerHTML=html; s.classList.add('open'); }
-function closeSheet(){
-  $('#sheet').classList.remove('open');
-  document.body.classList.remove('addMode'); // leave add-only mode
-}
+function closeSheet(){ $('#sheet').classList.remove('open'); document.body.classList.remove('addMode'); }
