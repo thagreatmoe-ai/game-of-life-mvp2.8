@@ -365,7 +365,9 @@ html, body, main, .view { overflow-x: hidden; }
 /* ===== Compact task card with expandable details ===== */
 .item{ position:relative; cursor:pointer; max-width:100%; }
 .item .summary{ display:flex; align-items:center; gap:12px; }
-.item .summary .title{ font-weight:700; font-size:18px; flex:1; }
+.item .summary .title{ font-weight:700; font-size:18px; }
+.item .summary .spacer{ flex:1; }   /* pushes the count to the far right */
+.item .summary .count{ min-width:42px; text-align:right; }
 .item .summary .count{ font-weight:700; color:#cfd5ff; }
 
 /* Progress bar already exists; we just ensure spacing */
