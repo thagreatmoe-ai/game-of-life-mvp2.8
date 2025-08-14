@@ -4,7 +4,17 @@ const todayKey=()=>new Date().toISOString().slice(0,10);
 const uid=()=>Math.random().toString(36).slice(2,10);
 function save(){localStorage.setItem('gol64', JSON.stringify(state));}
 function load(){try{const a=localStorage.getItem('gol64')||localStorage.getItem('gol63')||localStorage.getItem('gol61')||localStorage.getItem('gol6');return a?JSON.parse(a):{};}catch(e){return{}}}
-
+// --- Toast helper ---
+let _toastTimer;
+function showToast(msg, type = 'ok'){
+  const el = document.getElementById('toast');
+  if(!el){ alert(msg); return; }  // fallback if the div is missing
+  el.textContent = msg;
+  el.setAttribute('data-type', type);
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=> el.classList.remove('show'), 1600);
+}
 const DEFAULT_LEVELS=[200,300,400,500,600,800,1000,1200,1400,1600,1900,2200,2500];
 const defaultState={
   user:{name:'Mohammed', avatarStage:0, prestigeBonus:0},
