@@ -55,13 +55,44 @@
 
     <main id="views">
       <section id="view-today" class="view active">
-        <div class="card hero">
-          <div class="row-between wrap gap8">
-            <button id="btnResist" class="btn alt" type="button">Resistance: <span id="resistState">OFF</span></button>
-            <button id="btnProtect" class="btn alt" type="button">Protect streak today</button>
-          </div>
-          <div class="bar"><div class="fill" id="xpBar"></div></div>
-        </div>
+<!-- Top split: Resistance + Quick Session side-by-side -->
+<div class="top-split">
+  <!-- Resistance / Protect -->
+  <div class="card glass hero" id="resistCard">
+    <div class="row-between wrap gap8">
+      <button id="btnResist" class="btn alt" type="button">
+        Resistance: <span id="resistState">OFF</span>
+      </button>
+      <button id="btnProtect" class="btn alt" type="button">Protect streak today</button>
+    </div>
+    <div class="bar"><div class="fill" id="xpBar"></div></div>
+  </div>
+
+  <!-- Quick Session -->
+  <div class="card glass" id="quickCard">
+    <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
+
+    <div class="row" style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn alt sess" data-m="25">25m</button>
+      <button class="btn alt sess" data-m="30">30m</button>
+      <button class="btn alt sess" data-m="50">50m</button>
+
+      <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:140px;">
+        <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
+        <input id="customMin" class="input" placeholder="20" inputmode="numeric">
+      </label>
+
+      <!-- iOS-style toggle -->
+      <label class="switch">
+        <input id="sessToggle" type="checkbox" aria-label="Start/Stop session">
+        <span class="slider"></span>
+        <span class="switch-label" id="sessToggleText">Off</span>
+      </label>
+    </div>
+
+    <div id="timerBox" class="sub small" style="margin-top:8px; color:var(--muted)"></div>
+  </div>
+</div>
 
        <div class="card" style="margin:16px">
   <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
