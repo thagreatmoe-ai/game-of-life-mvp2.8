@@ -230,5 +230,107 @@ body{
 /* Color variants */
 #toast[data-type="ok"]     { background: rgba(56,211,159,.15); color:#b0f1d8; border-color:rgba(56,211,159,.35); }
 #toast[data-type="warn"]   { background: rgba(255,181,71,.17); color:#ffd9a0; border-color:rgba(255,181,71,.35); }
+/* ===== Modern facelift (glass + pills + accents) ===== */
+
+/* Color tokens (you can tweak later) */
+:root{
+  --bg:#0d1020;
+  --panel:#0f1530;
+  --card:#101835cc;              /* semi-transparent for glass */
+  --text:#eef1ff;
+  --muted:#aab2d9;
+  --accent:#7b8cff;
+  --accent-2:#38d39f;
+  --danger:#ff6b6b;
+  --border:#22305780;            /* transparent border */
+  --tabbar-h:56px;
+}
+
+/* Soft ambient background glow */
+body{
+  background: radial-gradient(1200px 700px at 20% -10%, #2331a61a, transparent 60%),
+              radial-gradient(900px 600px at 100% 0%, #5b36ff14, transparent 55%),
+              var(--bg);
+}
+
+/* Glass cards (affects .card and .item everywhere) */
+.card, .item{
+  background: var(--card);                 /* semi-transparent */
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  padding: 16px;
+}
+
+/* Titles & text rhythm */
+h2, h3 { margin: 0 0 10px; letter-spacing: .2px; }
+.sub.small{ color: var(--muted); }
+
+/* Pill buttons (use on small actions like Resist/Protect, +Task, etc.) */
+.btn, .btn.alt, .btn.small{
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  transition: transform .14s ease, opacity .14s ease;
+}
+.btn:active{ transform: translateY(1px) scale(.98); }
+.btn.alt{ background: rgba(255,255,255,.04); border: 1px solid var(--border); }
+
+/* Input polish */
+.input{
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 10px 12px;
+}
+.input:focus{ outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #7b8cff2e; }
+
+/* Progress bar (nice gradient fill) */
+.bar{ height: 8px; background: rgba(255,255,255,.06); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.bar .fill{ height: 100%; background: linear-gradient(90deg, var(--accent), #a9b4ff); transition: width .25s ease; }
+
+/* Task card accent strip (subtle) */
+.item{
+  position: relative;
+}
+.item::before{
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:4px;
+  background: linear-gradient(180deg, var(--accent), #9aa7ff);
+  border-top-left-radius: 18px; border-bottom-left-radius: 18px;
+  opacity:.7;
+}
+
+/* Status badges */
+.badge{ padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+.badge.success{ background: #38d39f22; color:#bdf2dc; border-color:#38d39f55; }
+.badge.skip{ background:#ff6b6b22; color:#ffc0c0; border-color:#ff6b6b55; }
+.badge.postpone{ background:#7b8cff22; color:#cfd5ff; border-color:#7b8cff55; }
+
+/* Top bar & bottom tab bar polish (uses what you already have) */
+.topbar, header{ background: rgba(15,21,48,.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+#tabbar{
+  position:fixed; left:0; right:0; bottom:0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(15,21,48,.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+}
+#tabbar .tab{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; color: var(--muted); text-decoration:none; min-width:44px; min-height:44px;
+}
+#tabbar .tab svg{ width:22px; height:22px; }
+#tabbar .tab.active{ color:#fff; }
+#tabbar .tab.active svg path{ fill: var(--accent); }
+
+/* Make the small stacked inputs stop wrapping weirdly on iPhone width */
+.stack.small.narrow .input.small{ min-width: 0; }
+
 #toast[data-type="danger"] { background: rgba(255,107,107,.15); color:#ffc0c0; border-color:rgba(255,107,107,.35); }
 #toast[data-type="info"]   { background: rgba(123,140,255,.18); color:#c8d0ff; border-color:rgba(123,140,255,.35); }
