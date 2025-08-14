@@ -205,3 +205,30 @@ body{
 .tab svg{ width:22px; height:22px; }
 .tab.active{ color:#fff; }
 .tab.active svg path{ fill:var(--accent); }
+/* ===== Toast (slide-up message) ===== */
+#toast{
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-h, 56px));
+  transform: translateX(-50%) translateY(24px);
+  background: rgba(28,36,64,.96);
+  color: var(--text, #e8edff);
+  padding: 12px 16px;
+  border: 1px solid var(--border, #243155);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  font-size: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 9998; /* below #sheet if you use it */
+}
+
+/* Visible state */
+#toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Color variants */
+#toast[data-type="ok"]     { background: rgba(56,211,159,.15); color:#b0f1d8; border-color:rgba(56,211,159,.35); }
+#toast[data-type="warn"]   { background: rgba(255,181,71,.17); color:#ffd9a0; border-color:rgba(255,181,71,.35); }
+#toast[data-type="danger"] { background: rgba(255,107,107,.15); color:#ffc0c0; border-color:rgba(255,107,107,.35); }
+#toast[data-type="info"]   { background: rgba(123,140,255,.18); color:#c8d0ff; border-color:rgba(123,140,255,.35); }
