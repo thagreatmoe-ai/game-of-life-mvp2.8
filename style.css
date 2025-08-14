@@ -474,3 +474,44 @@ html, body, main, .view{ overflow-x:hidden; }
 /* Keep task details collapsed until the card has .open */
 #todayTasks .item .details{ display:none; }
 #todayTasks .item.open .details{ display:block; }
+/* --- Top split grid (2 columns on phones too) --- */
+.top-split{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:12px;
+  margin:12px 0 0;
+}
+
+/* Glassy cards (semi-transparent panel, solid controls/text) */
+.card.glass{
+  background:rgba(16, 24, 53, .46);          /* partial transparency */
+  border:1px solid rgba(34,48,87,.55);
+  backdrop-filter:blur(14px) saturate(1.15);
+  -webkit-backdrop-filter:blur(14px) saturate(1.15);
+}
+.card.glass .btn{ background:var(--accent); color:#0d1020; border:none; } /* opaque buttons */
+.card.glass .btn.alt{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
+.card.glass .input{ background:#0d1427; }                                 /* opaque inputs */
+
+/* iOS-style switch */
+.switch{ display:inline-flex; align-items:center; gap:8px; }
+.switch input{
+  appearance:none; -webkit-appearance:none;
+  width:50px; height:30px; border-radius:999px;
+  background:#3a4268; border:1px solid var(--border);
+  position:relative; outline:none; transition:background .2s ease;
+}
+.switch input::after{
+  content:""; position:absolute; top:3px; left:3px;
+  width:24px; height:24px; border-radius:50%;
+  background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.35);
+  transition:transform .2s ease;
+}
+.switch input:checked{ background:var(--accent); }
+.switch input:checked::after{ transform:translateX(20px); }
+.switch .switch-label{ font-weight:600; }
+
+/* Keep cards from squishing too short on very narrow screens */
+@media (max-width:360px){
+  .top-split{ grid-template-columns:1fr; }   /* stack if extremely narrow */
+}
