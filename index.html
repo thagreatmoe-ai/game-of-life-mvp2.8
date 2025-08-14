@@ -11,15 +11,19 @@
   <meta name="theme-color" content="#7b8cff">
   <link rel="stylesheet" href="./style.css">
 </head>
+
 <script>
+  /* Dev helper: make sure an old SW doesn’t cache */
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations()
       .then(list => list.forEach(r => r.unregister()))
       .catch(()=>{});
   }
 </script>
-  <body>
+
+<body>
   <div id="app">
+    <!-- Top bar -------------------------------------------------------->
     <header class="topbar">
       <button id="hamburger" aria-label="Menu" title="Menu"><span class="ham"></span></button>
       <div class="top-title">
@@ -33,6 +37,7 @@
       </div>
     </header>
 
+    <!-- Drawer --------------------------------------------------------->
     <aside id="drawer" aria-label="Navigation">
       <div class="drawer-header">
         <div class="avatar" id="avatarBox">L1</div>
@@ -53,44 +58,54 @@
     </aside>
     <div id="backdrop" role="button" aria-label="Close menu"></div>
 
+    <!-- Views ---------------------------------------------------------->
     <main id="views">
       <section id="view-today" class="view active">
-<!-- Top split: Resistance + Quick Session side-by-side -->
-<div class="top-split">
-  <!-- Resistance / Protect -->
-  <div class="card glass compact" id="resistCard">
-  <h2 style="font-size:var(--h2); margin:0 0 8px">Resistance</h2>
 
-  <label class="switch">
-    <input id="resistToggle" type="checkbox" aria-label="Resistance on/off">
-    <span class="slider"></span>
-  </label>
+        <!-- Top split: Resistance + Quick Session (side-by-side) -->
+        <div class="top-split">
 
-  <button id="btnProtect" class="btn alt" type="button" style="margin-top:8px">
-    Protect streak today
-  </button>
-</div>
+          <!-- Resistance ------------------------------------------------>
+          <div class="card glass compact" id="resistCard">
+            <h2 style="font-size:var(--h2); margin:0 0 8px">Resistance</h2>
 
-  <!-- Quick Session -->
-  <div class="card glass compact" id="quickCard">
-  <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
+            <!-- iOS-style toggle -->
+            <label class="switch" aria-label="Resistance toggle">
+              <input id="resistToggle" type="checkbox">
+              <span class="slider"></span>
+            </label>
 
-  <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:140px;">
-    <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
-    <input id="customMin" class="input" placeholder="20" inputmode="numeric">
-  </label>
+            <button id="btnProtect" class="btn alt" type="button" style="margin-top:8px">
+              Protect streak today
+            </button>
 
-  <label class="switch" style="margin-top:8px">
-    <input id="sessToggle" type="checkbox" aria-label="Start/Stop session">
-    <span class="slider"></span>
-  </label>
+            <!-- subtle XP progress so app.js can update #xpBar -->
+            <div class="bar" style="margin-top:8px">
+              <div class="fill" id="xpBar" style="width:0%"></div>
+            </div>
+          </div>
 
-  <div id="timerBox" class="sub small" style="margin-top:8px; color:var(--muted)"></div>
-</div>
-</div>
+          <!-- Quick Session -------------------------------------------->
+          <div class="card glass compact" id="quickCard">
+            <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
 
-       
+            <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:140px;">
+              <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
+              <input id="customMin" class="input" placeholder="20" inputmode="numeric">
+            </label>
 
+            <!-- iOS-style toggle (start/stop) -->
+            <label class="switch" style="margin-top:8px" aria-label="Session toggle">
+              <input id="sessToggle" type="checkbox">
+              <span class="slider"></span>
+            </label>
+
+            <div id="timerBox" class="sub small" style="margin-top:8px; color:var(--muted)"></div>
+          </div>
+
+        </div>
+
+        <!-- Today’s tasks ---------------------------------------------->
         <div class="card">
           <div class="row-between">
             <h3>Today’s Tasks</h3>
@@ -100,6 +115,7 @@
         </div>
       </section>
 
+      <!-- Stats view --------------------------------------------------->
       <section id="view-stats" class="view">
         <div class="grid2">
           <div class="card">
@@ -133,6 +149,7 @@
         </div>
       </section>
 
+      <!-- Profile view ------------------------------------------------->
       <section id="view-profile" class="view">
         <div class="card">
           <h3>Profile</h3>
@@ -202,37 +219,38 @@
       </section>
     </main>
 
+    <!-- Tab bar ------------------------------------------------------->
     <nav id="tabbar">
-  <a class="tab active" data-view="today">
-    <!-- Today icon -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2Zm12 6H5v12h14V8Zm-9 3h2v2H10v-2Zm4 0h2v2h-2v-2Z"/>
-    </svg>
-    <span>Today</span>
-  </a>
+      <a class="tab active" data-view="today" aria-label="Today">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2Zm12 6H5v12h14V8Zm-9 3h2v2H10v-2Zm4 0h2v2h-2v-2Z"/>
+        </svg>
+        <span>Today</span>
+      </a>
 
-  <a class="tab" data-view="stats">
-    <!-- Stats icon -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M3 19h18v2H3v-2Zm2-8h3v6H5v-6Zm5-4h3v10h-3V7Zm5 3h3v7h-3V10Z"/>
-    </svg>
-    <span>Stats</span>
-  </a>
+      <a class="tab" data-view="stats" aria-label="Stats">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M3 19h18v2H3v-2Zm2-8h3v6H5v-6Zm5-4h3v10h-3V7Zm5 3h3v7h-3V10Z"/>
+        </svg>
+        <span>Stats</span>
+      </a>
 
-  <a class="tab" data-view="profile">
-    <!-- Profile icon -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
-    </svg>
-    <span>Profile</span>
-  </a>
-</nav>
+      <a class="tab" data-view="profile" aria-label="Profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
+        </svg>
+        <span>Profile</span>
+      </a>
+    </nav>
 
-<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Modal"></div>
 
-  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Modal"></div>
+    <!-- App script -->
+    <script src="app.js?v=69"></script>
 
-  <script src="app.js?v=69"></script>
+    <!-- Floating “+ Task” button (Today view only) -->
     <button class="fab" id="fabAddTask" type="button" aria-label="Add task" title="Add task">+</button>
+  </div>
 </body>
 </html>
