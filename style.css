@@ -396,3 +396,6 @@ html, body, main, .view{ overflow-x:hidden; }
 
 /* If you keep the floating + Task button, hide header +Task to avoid duplicates */
 #view-today #btnAddTask{ display:none; }
+/* Hide existing-task list/cards inside the sheet when adding via FAB */
+.addMode #sheet .list { display: none !important; }
+.addMode #sheet .item { display: none !important; }
