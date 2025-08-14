@@ -63,21 +63,25 @@
           <div class="bar"><div class="fill" id="xpBar"></div></div>
         </div>
 
-        <div class="card">
-          <h3>Quick Session</h3>
-          <div class="row gap8 quick">
-            <div class="btn ghost sess" data-m="25">25m</div>
-            <div class="btn ghost sess" data-m="30">30m</div>
-            <div class="btn ghost sess" data-m="50">50m</div>
-            <label class="stack small quickInput">
-              <span>Custom mins</span>
-              <input id="customMin" type="number" placeholder="20" class="input small" inputmode="numeric">
-            </label>
-            <button class="btn" id="btnStartSession" type="button">Start</button>
-            <button class="btn alt" id="btnStopSession" type="button">Stop</button>
-          </div>
-          <div id="timerBox" class="muted small"></div>
-        </div>
+       <div class="card" style="margin:16px">
+  <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
+
+  <div class="row" style="display:flex; gap:8px; flex-wrap:wrap">
+    <button class="btn alt sess" data-m="25">25m</button>
+    <button class="btn alt sess" data-m="30">30m</button>
+    <button class="btn alt sess" data-m="50">50m</button>
+
+    <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:160px;">
+      <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
+      <input id="customMin" class="input" placeholder="20" inputmode="numeric">
+    </label>
+
+    <button id="btnStartSession" class="btn" type="button">Start</button>
+    <button id="btnStopSession" class="btn alt" type="button">Stop</button>
+  </div>
+
+  <div id="timerBox" class="sub small" style="margin-top:8px; color:var(--muted)"></div>
+</div>
 
         <div class="card">
           <div class="row-between">
