@@ -150,11 +150,11 @@ function renderTaskCard({t, p, status}){
 
   const progressPct = p.target ? Math.min(100, (p.val/p.target*100)) : 0;
 
-  el.innerHTML = `
-    <div class="summary">
+      <div class="summary">
       <strong class="title">${t.name}</strong>
-      <span class="count">${p.val}/${p.target}</span>
       ${badge}
+      <span class="spacer"></span>
+      <span class="count">${p.val}/${p.target}</span>
     </div>
 
     <div class="bar"><div class="fill" style="width:${progressPct}%"></div></div>
