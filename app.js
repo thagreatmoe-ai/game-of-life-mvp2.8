@@ -193,7 +193,7 @@ function renderTaskCard({t, p, status}){
       </div>
     </div>
   `;
-
+el.classList.remove('open');   // start collapsed
   // Toggle open/close when tapping the header area
   el.querySelector('.summary').onclick = (e)=>{ el.classList.toggle('open'); };
 
