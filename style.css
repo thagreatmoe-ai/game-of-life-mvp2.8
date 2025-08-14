@@ -1,568 +1,310 @@
-/* Modern mobile UI with safe areas (no status bar overlap) */
+/* ===========================
+   GoL Modern — CSS (clean drop-in)
+   - Side-by-side top cards (Resistance + Quick Session)
+   - Partially transparent “glass” cards; text/inputs/buttons are opaque
+   - iOS-style toggle switch styles
+   - Compact top cards for more space for tasks
+   =========================== */
+
+/* -------- Tokens -------- */
 :root{
-  --bg:#0b0f1a; --panel:#12172a; --card:#18203a; --text:#f4f7ff; --muted:#a6b0d6;
-  --accent:#7b8cff; --accent2:#38d39f; --danger:#ff6b6b; --border:#253055; --success:#54e1a6; --purple:#a78bfa;
-}
-*{box-sizing:border-box}
-html,body{margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Arial; height:100%}
-#app{min-height:100vh; padding-bottom:calc(72px + env(safe-area-inset-bottom)); padding-top:env(safe-area-inset-top)}
-.topbar{position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:12px; padding:calc(8px + env(safe-area-inset-top)) 8px 8px 8px; background:linear-gradient(180deg,var(--panel),rgba(18,23,42,.7)); border-bottom:1px solid var(--border);}
-.topbar .top-title{flex:1}
-.topbar .top-right{display:flex; gap:6px}
-.chip{background:var(--card); border:1px solid var(--border); border-radius:999px; padding:6px 10px; font-size:12px}
-.sub{color:var(--muted)} .small{font-size:12px}
-.badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid var(--border); color:var(--muted)}
-.badge.success{border-color:transparent; background:rgba(84,225,166,.12); color:var(--success); font-weight:700}
-.badge.skip{background:rgba(255,107,107,.12); color:var(--danger); border-color:transparent; font-weight:700}
-.badge.postpone{background:rgba(167,139,250,.15); color:var(--purple); border-color:transparent; font-weight:700}
-.avatar{width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#6d77ff,#33d3a1); display:grid; place-items:center; font-weight:800}
-.avatar.big{width:64px; height:64px; font-size:20px}
-#hamburger{width:48px; height:48px; display:grid; place-items:center; background:transparent; border:none; color:var(--text); border-radius:12px}
-#hamburger:active{background:rgba(255,255,255,.06)}
-.ham{width:22px; height:2px; background:var(--text); position:relative; display:block}
-.ham::before,.ham::after{content:""; position:absolute; left:0; right:0; height:2px; background:var(--text)}
-.ham::before{top:-6px}.ham::after{top:6px}
-#backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; z-index:19}
-#drawer{position:fixed; z-index:20; top:0; left:0; bottom:0; width:80%; max-width:360px; background:var(--panel); border-right:1px solid var(--border); transform:translateX(-100%); transition:.25s; display:flex; flex-direction:column; padding-top:env(safe-area-inset-top)}
-#drawer.open{transform:translateX(0)}
-.drawer-header{display:flex; gap:12px; align-items:center; padding:16px; border-bottom:1px solid var(--border)}
-.drawer-nav{display:flex; flex-direction:column; padding:8px}
-.nav-item{background:transparent; border:1px solid var(--border); color:var(--text); padding:12px; border-radius:12px; text-align:left; margin:6px 8px}
-main{padding:12px}
-.view{display:none} .view.active{display:block}
-.card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px; margin-bottom:12px}
-.row{display:flex; align-items:center} .row-between{display:flex; align-items:center; justify-content:space-between}
-.gap8{gap:8px} .wrap{flex-wrap:wrap} .grow{flex:1}
-.input{width:100%; background:#0b1022; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px}
-.input.small{min-width:92px} .narrow{max-width:120px} .stack{display:flex; flex-direction:column}
-.btn{background:var(--accent); border:none; color:white; border-radius:12px; padding:10px 14px; font-weight:700}
-.btn.alt{background:var(--panel); border:1px solid var(--border); color:var(--text)}
-.btn.ghost{background:transparent; border:1px dashed var(--border); color:var(--muted)}
-.btn.danger{background:var(--danger)}
-.list{display:flex; flex-direction:column; gap:8px}
-.item{display:flex; gap:8px; align-items:center; border:1px solid var(--border); background:var(--panel); border-radius:12px; padding:10px}
-.item.done,.item.skipped,.item.postponed{opacity:.6}
-.bar{height:10px; background:#0a0f1c; border:1px solid var(--border); border-radius:999px; overflow:hidden}
-.fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%}
-.table{width:100%; border-collapse:collapse}
-.table th,.table td{border-bottom:1px solid var(--border); text-align:left; padding:8px; font-size:13px}
-#tabbar{position:fixed; z-index:25; bottom:0; left:0; right:0; height:calc(64px + env(safe-area-inset-bottom)); display:flex; background:rgba(18,23,42,.92); backdrop-filter: blur(6px); border-top:1px solid var(--border); padding-bottom:env(safe-area-inset-bottom)}
-#tabbar .tab{flex:1; background:transparent; border:none; color:var(--text); font-weight:700; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px}
-#tabbar .tab.active{color:var(--accent)}
-#tabbar .tab svg{width:22px; height:22px; fill:currentColor}
-.grid2{display:grid; grid-template-columns:1fr; gap:12px}
-@media(min-width:900px){ .grid2{grid-template-columns:1fr 1fr} }
-.sheet{position:fixed; z-index:40; left:0; right:0; bottom:0; transform:translateY(100%); background:var(--panel); border-top:1px solid var(--border); border-radius:16px 16px 0 0; padding:12px; max-height:85vh; overflow:auto; transition:.25s transform; padding-bottom:calc(12px + env(safe-area-inset-bottom))}
-.sheet.open{transform:translateY(0)}
-.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
-.kpi{font-size:22px; font-weight:800}
-.quick{flex-wrap:wrap} .quick .sess{min-width:72px; text-align:center} .quickInput{width:120px}
-/* --- iPhone safe-area + bigger touch targets --- */
-:root {
-  --tabbar-height: 56px;
-}
+  /* Theme colors (JS may override these via applyTheme) */
+  --bg:#0d1020;
+  --panel:#0f1530;
+  --card:#101835cc;           /* semi-transparent glass base */
+  --text:#eef1ff;
+  --muted:#aab2d9;
+  --accent:#7b8cff;
+  --accent2:#38d39f;
+  --danger:#ff6b6b;
+  --border:#22305780;
 
-/* Let the UI reserve space for the notch/status bar and bottom home indicator */
-html, body { height: 100%; }
-body {
-  /* top padding avoids time/battery overlapping content */
-  padding-top: env(safe-area-inset-top);
-  /* bottom padding makes Today content never sit under the tabbar/home indicator */
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-height));
-}
-
-/* If you have a fixed/sticky header, also pad it for the notch */
-.app-header, header, .topbar {
-  position: sticky; top: 0; z-index: 10;
-  padding-top: env(safe-area-inset-top);
-  background: var(--panel, #12172a);
-}
-
-/* Bottom tab bar sits above the iOS home indicator */
-#tabbar {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  display: flex; align-items: center; justify-content: space-around;
-  background: var(--panel, #12172a);
-  border-top: 1px solid var(--border, #253055);
-}
-
-/* Bigger hamburger & tab buttons (Apple HIG suggests 44x44 minimum) */
-#hamburger, .tab, .btn, .icon-btn {
-  min-width: 44px;
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-/* Fix small label/input wrapping on narrow screens */
-.stack.small.narrow .input.small {
-  min-width: 0;
-}
-.row.gap8 > .stack.small,
-.row.gap8 > .stack.small.narrow {
-  flex: 1 1 160px; /* prevents ugly wrap like “Custom mins” pushing the field down */
-}
-/* ===== Modern layout + tokens ===== */
-:root{
-  /* Colors (dark) — tweak in Theme settings */
-  --bg:#0b0f1a;          /* app background */
-  --panel:#0f1528;       /* headers / tabbar */
-  --card:#14203b;        /* cards */
-  --text:#e8edff;        /* main text */
-  --muted:#a6b0d6;       /* secondary text */
-  --accent:#7b8cff;      /* primary accent */
-  --accent-2:#38d39f;    /* success accent */
-  --danger:#ff6b6b;      /* errors / destructive */
-  --border:#243155;      /* subtle borders */
-
-  /* Shape & motion */
-  --radius-lg:16px;
-  --radius-md:12px;
-  --radius-sm:10px;
-  --elev-1:0 6px 20px rgba(0,0,0,.24);
-  --tap-ms:140ms;
-
-  /* Type scale */
-  --h1:28px; --h2:22px; --h3:18px;
-  --body:16px; --small:13px; --tiny:12px;
-
-  /* Spacing */
-  --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px;
-
-  /* Chrome */
+  /* Sizes */
   --tabbar-h:56px;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+
+  /* Type */
+  --h1:28px; --h2:22px; --h3:18px; --body:16px; --small:13px; --tiny:12px;
 }
 
-/* Safe areas + base */
-html,body{height:100%;}
+/* -------- Base / layout -------- */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+html,body{ margin:0; background:var(--bg); color:var(--text); font:400 var(--body)/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; }
 body{
-  background:var(--bg); color:var(--text); font:400 var(--body)/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  /* safe areas */
   padding-top:env(safe-area-inset-top);
   padding-bottom:calc(env(safe-area-inset-bottom) + var(--tabbar-h));
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+
+  /* subtle ambient glows */
+  background:
+    radial-gradient(1200px 700px at 20% -10%, #2331a61a, transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, #5b36ff14, transparent 55%),
+    var(--bg);
 }
 
-/* Cards */
-.card,.item{
-  background:var(--card);
+#app{ min-height:100vh; }
+
+/* prevent sideways scroll */
+html, body, main, .view { overflow-x:hidden; }
+
+/* -------- Top bar -------- */
+.topbar{
+  position:sticky; top:0; z-index:30;
+  display:flex; align-items:center; gap:12px;
+  padding:calc(env(safe-area-inset-top) + 8px) var(--space-4) var(--space-3);
+  background:rgba(15,21,48,.8);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.topbar .top-title{ flex:1; }
+.topbar .top-right{ display:flex; gap:6px; }
+
+#hamburger{ width:48px; height:48px; display:grid; place-items:center; background:transparent; border:none; color:var(--text); border-radius:12px; }
+#hamburger:active{ background:rgba(255,255,255,.06); }
+.ham{ width:22px; height:2px; background:var(--text); position:relative; display:block; }
+.ham::before,.ham::after{ content:""; position:absolute; left:0; right:0; height:2px; background:var(--text); }
+.ham::before{ top:-6px; } .ham::after{ top:6px; }
+
+/* -------- Drawer -------- */
+#backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; z-index:19; }
+#drawer{ position:fixed; z-index:20; top:0; left:0; bottom:0; width:80%; max-width:360px; background:var(--panel); border-right:1px solid var(--border); transform:translateX(-100%); transition:.25s; display:flex; flex-direction:column; padding-top:env(safe-area-inset-top); }
+#drawer.open{ transform:translateX(0); }
+.drawer-header{ display:flex; gap:12px; align-items:center; padding:16px; border-bottom:1px solid var(--border); }
+.drawer-nav{ display:flex; flex-direction:column; padding:8px; }
+.nav-item{ background:transparent; border:1px solid var(--border); color:var(--text); padding:12px; border-radius:12px; text-align:left; margin:6px 8px; }
+
+/* -------- Chips / avatar -------- */
+.chip{ background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:999px; padding:6px 10px; font-size:12px; }
+.avatar{ width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#6d77ff,#33d3a1); display:grid; place-items:center; font-weight:800; }
+.avatar.big{ width:64px; height:64px; font-size:20px; }
+
+/* -------- Cards / lists -------- */
+main{ padding:12px; }
+.view{ display:none; } .view.active{ display:block; }
+
+.card, .item{
+  background:var(--card);                 /* semi-transparent */
   border:1px solid var(--border);
   border-radius:var(--radius-lg);
-  padding:var(--space-4);
-  box-shadow:var(--elev-1);
+  padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
 }
+
+.card.hero{
+  background:linear-gradient(135deg,#6f7cff33,#5adfb633);
+  border-color:transparent;
+}
+
+.list{ display:flex; flex-direction:column; gap:8px; }
+
+/* Task item accent */
+.item{ position:relative; }
+.item::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+  background:linear-gradient(180deg,var(--accent),#9aa7ff);
+  border-top-left-radius:var(--radius-lg); border-bottom-left-radius:var(--radius-lg);
+  opacity:.7;
+}
+.item.done,.item.skipped,.item.postponed{ opacity:.6; }
 
 /* Buttons */
 .btn{
-  border-radius:14px;
+  border-radius:999px;
   padding:10px 16px;
   font-weight:600;
-  transition:transform var(--tap-ms), opacity var(--tap-ms);
+  transition:transform .14s ease, opacity .14s ease;
+  background:var(--accent); color:#0d1020; border:none;
 }
 .btn:active{ transform:translateY(1px) scale(.98); }
-.btn.alt{ background:transparent; border:1px solid var(--border); color:var(--text); }
+.btn.alt{ background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--text); }
 .btn.danger{ background:var(--danger); color:#000; }
 
 /* Inputs */
 .input{
-  background:#0d1427; color:var(--text);
-  border:1px solid var(--border); border-radius:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
   padding:10px 12px; outline:none;
 }
-.input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(123,140,255,.18); }
+.input.small{ min-width:92px; }
+.input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px #7b8cff2e; }
 
-/* Sticky topbar */
-.topbar{
-  position:sticky; top:0; z-index:10;
-  background:var(--panel);
-  padding:calc(env(safe-area-inset-top) + 8px) var(--space-4) var(--space-3);
-  border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:12px;
-}
-
-/* Bigger touch targets */
-#hamburger,.tab,.icon-btn{ min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
-
-/* Badges */
-.badge{ padding:2px 8px; border-radius:999px; font-size:var(--tiny); border:1px solid var(--border); }
-.badge.success{ background:rgba(56,211,159,.15); color:var(--accent-2); border-color:rgba(56,211,159,.35); }
-.badge.skip{ background:rgba(255,107,107,.12); color:#ff9b9b; border-color:rgba(255,107,107,.3); }
-.badge.postpone{ background:rgba(123,140,255,.16); color:#b8c2ff; border-color:rgba(123,140,255,.35); }
-
-/* Progress bar */
-.bar{ height:8px; background:#0d1427; border-radius:6px; overflow:hidden; border:1px solid var(--border); }
-.bar .fill{ height:100%; background:linear-gradient(90deg, var(--accent), #a4b1ff); transition:width .25s; }
-
-/* Bottom tabbar with icons */
-#tabbar{
-  position:fixed; left:0; right:0; bottom:0;
-  height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-  padding-bottom:env(safe-area-inset-bottom);
-  background:var(--panel); border-top:1px solid var(--border);
-  display:flex; justify-content:space-around; align-items:center;
-}
-.tab{ color:var(--muted); gap:6px; flex-direction:column; text-decoration:none; }
-.tab svg{ width:22px; height:22px; }
-.tab.active{ color:#fff; }
-.tab.active svg path{ fill:var(--accent); }
-/* ===== Toast (slide-up message) ===== */
-#toast{
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-h, 56px));
-  transform: translateX(-50%) translateY(24px);
-  background: rgba(28,36,64,.96);
-  color: var(--text, #e8edff);
-  padding: 12px 16px;
-  border: 1px solid var(--border, #243155);
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.35);
-  font-size: 14px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .18s ease, transform .18s ease;
-  z-index: 9998; /* below #sheet if you use it */
-}
-
-/* Visible state */
-#toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Color variants */
-#toast[data-type="ok"]     { background: rgba(56,211,159,.15); color:#b0f1d8; border-color:rgba(56,211,159,.35); }
-#toast[data-type="warn"]   { background: rgba(255,181,71,.17); color:#ffd9a0; border-color:rgba(255,181,71,.35); }
-/* ===== Modern facelift (glass + pills + accents) ===== */
-
-/* Color tokens (you can tweak later) */
-:root{
-  --bg:#0d1020;
-  --panel:#0f1530;
-  --card:#101835cc;              /* semi-transparent for glass */
-  --text:#eef1ff;
-  --muted:#aab2d9;
-  --accent:#7b8cff;
-  --accent-2:#38d39f;
-  --danger:#ff6b6b;
-  --border:#22305780;            /* transparent border */
-  --tabbar-h:56px;
-}
-
-/* Soft ambient background glow */
-body{
-  background: radial-gradient(1200px 700px at 20% -10%, #2331a61a, transparent 60%),
-              radial-gradient(900px 600px at 100% 0%, #5b36ff14, transparent 55%),
-              var(--bg);
-}
-
-/* Glass cards (affects .card and .item everywhere) */
-.card, .item{
-  background: var(--card);                 /* semi-transparent */
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  padding: 16px;
-}
-
-/* Titles & text rhythm */
-h2, h3 { margin: 0 0 10px; letter-spacing: .2px; }
-.sub.small{ color: var(--muted); }
-
-/* Pill buttons (use on small actions like Resist/Protect, +Task, etc.) */
-.btn, .btn.alt, .btn.small{
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 600;
-  transition: transform .14s ease, opacity .14s ease;
-}
-.btn:active{ transform: translateY(1px) scale(.98); }
-.btn.alt{ background: rgba(255,255,255,.04); border: 1px solid var(--border); }
-
-/* Input polish */
-.input{
-  background: rgba(255,255,255,.05);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  padding: 10px 12px;
-}
-.input:focus{ outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #7b8cff2e; }
-
-/* Progress bar (nice gradient fill) */
-.bar{ height: 8px; background: rgba(255,255,255,.06); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.bar .fill{ height: 100%; background: linear-gradient(90deg, var(--accent), #a9b4ff); transition: width .25s ease; }
-
-/* Task card accent strip (subtle) */
-.item{
-  position: relative;
-}
-.item::before{
-  content:'';
-  position:absolute; left:0; top:0; bottom:0; width:4px;
-  background: linear-gradient(180deg, var(--accent), #9aa7ff);
-  border-top-left-radius: 18px; border-bottom-left-radius: 18px;
-  opacity:.7;
-}
-
-/* Status badges */
-.badge{ padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
-.badge.success{ background: #38d39f22; color:#bdf2dc; border-color:#38d39f55; }
+/* Text helpers */
+.sub{ color:var(--muted); }
+.small{ font-size:var(--small); }
+.badge{ padding:2px 8px; border-radius:999px; font-size:var(--tiny); border:1px solid var(--border); color:var(--muted); }
+.badge.success{ background:#38d39f22; color:#bdf2dc; border-color:#38d39f55; }
 .badge.skip{ background:#ff6b6b22; color:#ffc0c0; border-color:#ff6b6b55; }
 .badge.postpone{ background:#7b8cff22; color:#cfd5ff; border-color:#7b8cff55; }
 
-/* Top bar & bottom tab bar polish (uses what you already have) */
-.topbar, header{ background: rgba(15,21,48,.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+/* Progress bar */
+.bar{ height:8px; background:rgba(255,255,255,.06); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.fill{ height:100%; background:linear-gradient(90deg,var(--accent),#a9b4ff); width:0%; transition:width .25s ease; }
+
+/* Tables */
+.table{ width:100%; border-collapse:collapse; }
+.table th,.table td{ border-bottom:1px solid var(--border); text-align:left; padding:8px; font-size:13px; }
+
+/* -------- Bottom tabbar -------- */
 #tabbar{
-  position:fixed; left:0; right:0; bottom:0;
-  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(15,21,48,.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid var(--border);
+  position:fixed; left:0; right:0; bottom:0; z-index:25;
+  height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  display:flex; justify-content:space-around; align-items:center;
+  background:rgba(15,21,48,.92);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
 }
-#tabbar .tab{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:6px; color: var(--muted); text-decoration:none; min-width:44px; min-height:44px;
-}
+#tabbar .tab{ color:var(--muted); text-decoration:none; min-width:44px; min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
 #tabbar .tab svg{ width:22px; height:22px; }
 #tabbar .tab.active{ color:#fff; }
-#tabbar .tab.active svg path{ fill: var(--accent); }
+#tabbar .tab.active svg path{ fill:var(--accent); }
 
-/* Make the small stacked inputs stop wrapping weirdly on iPhone width */
-.stack.small.narrow .input.small{ min-width: 0; }
-
-#toast[data-type="danger"] { background: rgba(255,107,107,.15); color:#ffc0c0; border-color:rgba(255,107,107,.35); }
-#toast[data-type="info"]   { background: rgba(123,140,255,.18); color:#c8d0ff; border-color:rgba(123,140,255,.35); }
-/* Gradient hero variant */
-.card.hero{
-  background: linear-gradient(135deg, #6f7cff33, #5adfb633);
-  border-color: transparent;
+/* -------- Toast -------- */
+#toast{
+  position:fixed; left:50%;
+  bottom:calc(env(safe-area-inset-bottom) + var(--tabbar-h));
+  transform:translateX(-50%) translateY(24px);
+  background:rgba(28,36,64,.96);
+  color:var(--text);
+  padding:12px 16px; border:1px solid var(--border); border-radius:12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+  font-size:14px; pointer-events:none; opacity:0;
+  transition:opacity .18s ease, transform .18s ease; z-index:9998;
 }
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+#toast[data-type="ok"]{ background:rgba(56,211,159,.15); color:#b0f1d8; border-color:rgba(56,211,159,.35); }
+#toast[data-type="warn"]{ background:rgba(255,181,71,.17); color:#ffd9a0; border-color:rgba(255,181,71,.35); }
+#toast[data-type="danger"]{ background:rgba(255,107,107,.15); color:#ffc0c0; border-color:rgba(255,107,107,.35); }
+#toast[data-type="info"]{ background:rgba(123,140,255,.18); color:#c8d0ff; border-color:rgba(123,140,255,.35); }
+
+/* -------- FAB (+ Task) -------- */
 .fab{
-  position: fixed; right:16px;
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
-  width:56px; height:56px;
-  border-radius:50%;
-  display:none;                 /* hidden by default; JS will show on Today */
-  align-items:center; justify-content:center;
+  position:fixed; right:16px;
+  bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  width:56px; height:56px; border-radius:50%;
+  display:none; align-items:center; justify-content:center;
   padding:0; line-height:1; font-size:28px; font-weight:700;
-  background: linear-gradient(90deg, var(--accent), #9aa7ff);
-  color:#0d1020; border:none;
-  box-shadow: 0 12px 30px rgba(0,0,0,.35);
-}
-/* === Fix horizontal overflow & responsive actions === */
-html, body, main, .view { overflow-x: hidden; }
-
-.item { max-width: 100%; }
-.item .actions { display:flex; flex-wrap:wrap; gap:8px; }
-.item .actions .stack { flex: 1 1 180px; min-width: 180px; } /* Status/Action select */
-.item .actions .btn { flex: 0 0 auto; }                      /* Apply / Undo */
-.item .actions select.input { width: 100%; }
-
-/* If you keep the floating + Task button, hide the header + Task to avoid duplicates */
-#view-today #btnAddTask { display: none; }
-/* ===== Compact task card with expandable details ===== */
-.item{ position:relative; cursor:pointer; max-width:100%; }
-.item .summary{ display:flex; align-items:center; gap:12px; }
-/* Summary row = name … badge … [spacer] … 0/2 on far right */
-.item .summary{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  width:100%;
-}
-.item .summary .title{
-  font-weight:700;
-  font-size:18px;
-  /* IMPORTANT: no flex:1 here */
-}
-.item .summary .spacer{ flex:1; }          /* pushes count to the edge */
-.item .summary .spacer{ flex:1; }   /* pushes the count to the far right */
-.item .summary .count{
-  min-width:48px;
-  text-align:right;
-  margin-left:8px;
-  font-weight:700;
-  color:#cfd5ff;
+  background:linear-gradient(90deg,var(--accent),#9aa7ff);
+  color:#0d1020; border:none; box-shadow:0 12px 30px rgba(0,0,0,.35);
 }
 
-/* Progress bar already exists; we just ensure spacing */
-.item .bar{ margin-top:8px; }
+/* -------- Sheet -------- */
+.sheet{ position:fixed; z-index:40; left:0; right:0; bottom:0; transform:translateY(100%); background:var(--panel); border-top:1px solid var(--border); border-radius:16px 16px 0 0; padding:12px; max-height:85vh; overflow:auto; transition:.25s transform; padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
+.sheet.open{ transform:translateY(0); }
 
-/* Details are collapsed by default */
-.item .details{
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transition:max-height .25s ease, opacity .2s ease;
-  margin-top:8px;
-}
-.item.open .details{ max-height:420px; opacity:1; }
-
-/* Info grid inside details */
-.item .info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-@media (max-width:420px){ .item .info-grid{ grid-template-columns:1fr; } }
-
-/* Action row: wraps neatly on iPhone width */
-.item .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.item .actions .stack{ flex:1 1 220px; min-width:220px; }
-.item .actions .btn{ flex:1 1 120px; min-width:120px; }
-.item .actions select.input, .item .actions input.input{ width:100%; }
-
-/* Prevent page side-scrolling */
-html, body, main, .view{ overflow-x:hidden; }
-
-/* If you keep the floating + Task button, hide header +Task to avoid duplicates */
-#view-today #btnAddTask{ display:none; }
-/* Hide existing-task list/cards inside the sheet when adding via FAB */
-.addMode #sheet .list { display: none !important; }
-.addMode #sheet .item { display: none !important; }
-/* --- Task card layout (2025) --- */
-#todayTasks .item { 
-  display:block;
-  padding:14px 16px;
-  border-radius:16px;
-  background:var(--card);
-  box-shadow: 0 6px 22px rgba(0,0,0,.35);
+/* -------- Today task cards (compact & collapsible) -------- */
+#todayTasks .item{
+  display:block; padding:14px 16px; border-radius:16px;
+  background:var(--card); box-shadow:0 6px 22px rgba(0,0,0,.35);
   margin:10px 6px;
 }
-
-/* Header row: title on left, progress on far right */
 #todayTasks .item .summary{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:nowrap;             /* keep on one line */
-  min-height:28px;
+  display:flex; align-items:center; gap:10px; flex-wrap:nowrap; min-height:28px;
 }
 #todayTasks .item .summary .title{
-  font-weight:600;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;       /* long names don’t wrap */
-  max-width:70%;
+  font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;
 }
-#todayTasks .item .summary .spacer{ flex:1; } /* pushes count to the right */
-#todayTasks .item .summary .count{
-  margin-left:auto;
-  font-weight:700;
-  opacity:.9;
-}
-
-/* Progress bar */
-#todayTasks .item .bar{ 
-  height:6px; 
-  background:rgba(255,255,255,.06); 
-  border-radius:999px; 
-  margin-top:8px;
-}
-#todayTasks .item .bar .fill{ 
-  height:100%; 
-  width:0; 
-  background:var(--accent); 
-  border-radius:999px; 
-  transition:width .3s ease; 
-}
-
-/* Hide details until the card is opened (tap header) */
+#todayTasks .item .summary .spacer{ flex:1; }
+#todayTasks .item .summary .count{ margin-left:auto; font-weight:700; opacity:.9; }
+#todayTasks .item .bar{ height:6px; background:rgba(255,255,255,.06); border-radius:999px; margin-top:8px; }
+#todayTasks .item .bar .fill{ height:100%; width:0; background:var(--accent); border-radius:999px; transition:width .3s ease; }
 #todayTasks .item .details{ display:none; margin-top:12px; }
 #todayTasks .item.open .details{ display:block; }
-
-/* Badges inside header get a bit of space */
 #todayTasks .item .badge{ margin-left:8px; }
-/* Keep task details collapsed until the card has .open */
-#todayTasks .item .details{ display:none; }
-#todayTasks .item.open .details{ display:block; }
-/* --- Top split grid (2 columns on phones too) --- */
+
+/* -------- Forms / rows -------- */
+.row{ display:flex; align-items:center; }
+.row-between{ display:flex; align-items:center; justify-content:space-between; }
+.gap8{ gap:8px; }
+.wrap{ flex-wrap:wrap; }
+.grow{ flex:1; }
+.stack{ display:flex; flex-direction:column; }
+.stack.small.narrow .input.small{ min-width:0; }
+.row.gap8 > .stack.small,
+.row.gap8 > .stack.small.narrow{ flex:1 1 160px; }
+
+/* -------- Badges in header buttons -------- */
+#view-today #btnAddTask{ display:none; }     /* hide duplicate when FAB present */
+
+/* ===================== */
+/*  TOP SPLIT (header)   */
+/* ===================== */
+
+/* Two cards side-by-side on phones; stack only on very narrow screens */
 .top-split{
   display:grid;
   grid-template-columns:repeat(2, minmax(0,1fr));
   gap:12px;
-  margin:12px 0 0;
+  margin:12px 0 12px;
+}
+@media (max-width:359px){
+  .top-split{ grid-template-columns:1fr; }
 }
 
-/* Glassy cards (semi-transparent panel, solid controls/text) */
+/* Glass look with partially transparent container but solid controls */
 .card.glass{
-  background:rgba(16, 24, 53, .46);          /* partial transparency */
+  background:rgba(16,24,52,.38);
   border:1px solid rgba(34,48,87,.55);
   backdrop-filter:blur(14px) saturate(1.15);
   -webkit-backdrop-filter:blur(14px) saturate(1.15);
 }
-.card.glass .btn{ background:var(--accent); color:#0d1020; border:none; } /* opaque buttons */
-.card.glass .btn.alt{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
-.card.glass .input{ background:#0d1427; }                                 /* opaque inputs */
-
-/* iOS-style switch */
-.switch{ display:inline-flex; align-items:center; gap:8px; }
-.switch input{
-  appearance:none; -webkit-appearance:none;
-  width:50px; height:30px; border-radius:999px;
-  background:#3a4268; border:1px solid var(--border);
-  position:relative; outline:none; transition:background .2s ease;
-}
-.switch input::after{
-  content:""; position:absolute; top:3px; left:3px;
-  width:24px; height:24px; border-radius:50%;
-  background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.35);
-  transition:transform .2s ease;
-}
-.switch input:checked{ background:var(--accent); }
-.switch input:checked::after{ transform:translateX(20px); }
-.switch .switch-label{ font-weight:600; }
-
-/* Keep cards from squishing too short on very narrow screens */
-@media (max-width:360px){
-  .top-split{ grid-template-columns:1fr; }   /* stack if extremely narrow */
-}
-/* Side-by-side layout for the two top cards */
-.top-split{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin-bottom:12px;
-}
-@media (min-width:640px){
-  .top-split{ grid-template-columns:1fr 1fr; }
-}
-
-/* Make both top cards compact and equal height */
-#resistCard, #quickCard{
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  gap:10px;
-}
-
-/* Partially transparent card, but opaque controls */
-.card.glass{ 
-  background: rgba(16, 24, 52, .38);
-  border: 1px solid rgba(34,48,87,.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
 .card.glass .input,
-.card.glass .btn,
-.card.glass .switch .slider{
-  background: #0f162e;  /* opaque controls */
-  color: var(--text);
-  border-color: rgba(255,255,255,.08);
+.card.glass .btn{
+  background:#0f162e;                 /* opaque controls */
+  color:var(--text);
+  border-color:rgba(255,255,255,.08);
 }
 
-/* iOS-style switch */
+/* Compact padding in top cards */
+#resistCard, #quickCard{ padding:12px; }
+
+/* Equal heights; left card is a square */
+#resistCard{
+  aspect-ratio:1/1;                     /* square */
+  display:flex; flex-direction:column; gap:10px;
+}
+#quickCard{
+  display:flex; flex-direction:column; gap:10px;
+}
+
+/* Hide secondary label next to switches (you said toggle UI is obvious) */
+.switch .switch-label{ display:none; }
+
+/* -------- iOS-style switch (used for Resistance & Session) -------- */
 .switch{ position:relative; display:inline-block; width:52px; height:30px; }
 .switch input{ display:none; }
 .switch .slider{
   position:absolute; inset:0; border-radius:999px;
-  background:#36405e; transition:background .18s ease;
+  background:#36405e; border:1px solid rgba(255,255,255,.08);
+  transition:background .18s ease;
 }
 .switch .slider::before{
   content:"";
   position:absolute; top:3px; left:3px; width:24px; height:24px;
-  background:#fff; border-radius:50%; transition:transform .18s ease;
+  background:#fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,.35);
+  transition:transform .18s ease;
 }
 .switch input:checked + .slider{ background:var(--accent); }
 .switch input:checked + .slider::before{ transform:translateX(22px); }
 
-/* Slightly smaller padding on the top cards */
-.card.compact{ padding:12px; }
+/* -------- Misc -------- */
+.kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.kpi{ font-size:22px; font-weight:800; }
+
+/* Typography tweaks */
+h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
+
+/* Make select/input rows wrap nicely on small screens */
+.item .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.item .actions .stack{ flex:1 1 220px; min-width:220px; }
+.item .actions .btn{ flex:1 1 120px; min-width:120px; }
+.item .actions select.input, .item .actions input.input{ width:100%; }
