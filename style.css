@@ -378,13 +378,13 @@ html, body, main, .view { overflow-x: hidden; }
   /* IMPORTANT: no flex:1 here */
 }
 .item .summary .spacer{ flex:1; }          /* pushes count to the edge */
+.item .summary .spacer{ flex:1; }   /* pushes the count to the far right */
 .item .summary .count{
   min-width:48px;
   text-align:right;
   margin-left:8px;
-.item .summary .spacer{ flex:1; }   /* pushes the count to the far right */
-.item .summary .count{ min-width:42px; text-align:right; }
-.item .summary .count{ font-weight:700; color:#cfd5ff; }
+  font-weight:700;
+  color:#cfd5ff;
 
 /* Progress bar already exists; we just ensure spacing */
 .item .bar{ margin-top:8px; }
