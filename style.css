@@ -385,6 +385,7 @@ html, body, main, .view { overflow-x: hidden; }
   margin-left:8px;
   font-weight:700;
   color:#cfd5ff;
+}
 
 /* Progress bar already exists; we just ensure spacing */
 .item .bar{ margin-top:8px; }
