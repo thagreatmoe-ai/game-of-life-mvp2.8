@@ -417,3 +417,56 @@ html, body, main, .view{ overflow-x:hidden; }
 /* Hide existing-task list/cards inside the sheet when adding via FAB */
 .addMode #sheet .list { display: none !important; }
 .addMode #sheet .item { display: none !important; }
+/* --- Task card layout (2025) --- */
+#todayTasks .item { 
+  display:block;
+  padding:14px 16px;
+  border-radius:16px;
+  background:var(--card);
+  box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  margin:10px 6px;
+}
+
+/* Header row: title on left, progress on far right */
+#todayTasks .item .summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;             /* keep on one line */
+  min-height:28px;
+}
+#todayTasks .item .summary .title{
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;       /* long names don’t wrap */
+  max-width:70%;
+}
+#todayTasks .item .summary .spacer{ flex:1; } /* pushes count to the right */
+#todayTasks .item .summary .count{
+  margin-left:auto;
+  font-weight:700;
+  opacity:.9;
+}
+
+/* Progress bar */
+#todayTasks .item .bar{ 
+  height:6px; 
+  background:rgba(255,255,255,.06); 
+  border-radius:999px; 
+  margin-top:8px;
+}
+#todayTasks .item .bar .fill{ 
+  height:100%; 
+  width:0; 
+  background:var(--accent); 
+  border-radius:999px; 
+  transition:width .3s ease; 
+}
+
+/* Hide details until the card is opened (tap header) */
+#todayTasks .item .details{ display:none; margin-top:12px; }
+#todayTasks .item.open .details{ display:block; }
+
+/* Badges inside header get a bit of space */
+#todayTasks .item .badge{ margin-left:8px; }
