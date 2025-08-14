@@ -194,18 +194,32 @@
       </section>
     </main>
 
-    <nav id="tabbar" aria-label="Bottom navigation">
-      <button class="tab active" data-view="today" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h2v3h8V2h2v3h3v17H3V5h3zM5 9h14v10H5V9z"/></svg>
-        <span>Today</span></button>
-      <button class="tab" data-view="stats" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16v2H4zM6 10h3v7H6zM11 5h3v12h-3zM16 8h3v9h-3z"/></svg>
-        <span>Stats</span></button>
-      <button class="tab" data-view="profile" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5z"/></svg>
-        <span>Profile</span></button>
-    </nav>
-  </div>
+    <nav id="tabbar">
+  <a class="tab active" data-view="today">
+    <!-- Today icon -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2Zm12 6H5v12h14V8Zm-9 3h2v2H10v-2Zm4 0h2v2h-2v-2Z"/>
+    </svg>
+    <span>Today</span>
+  </a>
+
+  <a class="tab" data-view="stats">
+    <!-- Stats icon -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M3 19h18v2H3v-2Zm2-8h3v6H5v-6Zm5-4h3v10h-3V7Zm5 3h3v7h-3V10Z"/>
+    </svg>
+    <span>Stats</span>
+  </a>
+
+  <a class="tab" data-view="profile">
+    <!-- Profile icon -->
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
+    </svg>
+    <span>Profile</span>
+  </a>
+</nav>
+
 
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Modal"></div>
 
