@@ -347,3 +347,14 @@ h2, h3 { margin: 0 0 10px; letter-spacing: .2px; }
   color: #0d1020; box-shadow: 0 12px 30px rgba(0,0,0,.35);
   border: none;
 }
+/* === Fix horizontal overflow & responsive actions === */
+html, body, main, .view { overflow-x: hidden; }
+
+.item { max-width: 100%; }
+.item .actions { display:flex; flex-wrap:wrap; gap:8px; }
+.item .actions .stack { flex: 1 1 180px; min-width: 180px; } /* Status/Action select */
+.item .actions .btn { flex: 0 0 auto; }                      /* Apply / Undo */
+.item .actions select.input { width: 100%; }
+
+/* If you keep the floating + Task button, hide the header + Task to avoid duplicates */
+#view-today #btnAddTask { display: none; }
