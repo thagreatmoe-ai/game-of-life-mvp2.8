@@ -470,3 +470,6 @@ html, body, main, .view{ overflow-x:hidden; }
 
 /* Badges inside header get a bit of space */
 #todayTasks .item .badge{ margin-left:8px; }
+/* Keep task details collapsed until the card has .open */
+#todayTasks .item .details{ display:none; }
+#todayTasks .item.open .details{ display:block; }
