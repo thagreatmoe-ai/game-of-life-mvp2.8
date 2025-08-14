@@ -613,7 +613,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $$('#tabbar .tab').forEach(b=> b.onclick=()=> router(b.dataset.view));
   $('#hamburger').onclick=()=> toggleDrawer(true);
   $('#backdrop').onclick=()=> toggleDrawer(false);
-  $$('#drawer .nav-item').forEach(b=> b.onclick=()=>{ toggleDrawer(false); const name=b.dataset.open; if(name==='tasks') openTasks(); if(name==='fields') openFields(); if(name==='titles') openTitles(); if(name==='rewards') openRewards(); if(name==='theme') openTheme(); if(name==='backup') openBackup(); if(name==='settings') openSettings(); });
+  $$('#drawer .nav-item').forEach(b=> b.onclick=()=>{ toggleDrawer(false); const name=b.dataset.open;   if(name==='tasks'){ document.body.classList.remove('addMode'); openTasks(); }
+ if(name==='fields') openFields(); if(name==='titles') openTitles(); if(name==='rewards') openRewards(); if(name==='theme') openTheme(); if(name==='backup') openBackup(); if(name==='settings') openSettings(); });
   $('#btnAddTask').onclick=()=> openTasks();
   $('#btnResist').onclick=()=>{ state.day.resistance=!state.day.resistance; save(); renderHeader(); };
   $('#btnProtect').onclick=()=>{ if(confirm('Do you want to protect your streak today?')){ state.streak.protected=true; alert('Today is protected.'); save(); } };
@@ -636,7 +637,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
 const fab = document.getElementById('fabAddTask');
 if (fab){
   // reuse existing +Task logic
-  fab.onclick = () => document.getElementById('btnAddTask')?.click();
+    // reuse existing +Task logic, but mark "add-only" mode
+  fab.onclick = () => {
+    document.body.classList.add('addMode');
+    document.getElementById('btnAddTask')?.click();
+  };
+
 
   // show only when Today view is active
   function updateFab(){
@@ -652,4 +658,7 @@ if (fab){
 
 // Utils
 function openSheet(html){ const s=$('#sheet'); s.innerHTML=html; s.classList.add('open'); }
-function closeSheet(){ $('#sheet').classList.remove('open'); }
+function closeSheet(){
+  $('#sheet').classList.remove('open');
+  document.body.classList.remove('addMode'); // leave add-only mode
+}
