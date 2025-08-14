@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>GoL Modern</title>
@@ -11,7 +11,14 @@
   <meta name="theme-color" content="#7b8cff">
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then(list => list.forEach(r => r.unregister()))
+      .catch(()=>{});
+  }
+</script>
+  <body>
   <div id="app">
     <header class="topbar">
       <button id="hamburger" aria-label="Menu" title="Menu"><span class="ham"></span></button>
@@ -198,6 +205,6 @@
 
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Modal"></div>
 
-  <script src="./app.js"></script>
+  <script src="app.js?v=69"></script>
 </body>
 </html>
