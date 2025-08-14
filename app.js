@@ -179,14 +179,17 @@ function renderTaskCard({t, p, status}){
     </div>
 
     <div class="bar"><div class="fill" style="width:${Math.min(100, (p.target? (p.val/p.target*100) : 0))}%"></div></div>
-    <div class="sub small" style="margin-top:6px;display:flex;justify-content:space-between;color:var(--muted)">
+    <div class="sub small" style="margin-top:6px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; color:var(--muted)">
+  <span>Progress: <b>${progressText}</b></span>
+  ${ p.done ? '' : `<span>Status: <b>${status ? status : 'active'}</b></span>` }
+</div>
       <span>Progress: <b>${progressText}</b></span>
       <span>Status: <b>${status ? status : (p.done?'completed':'active')}</b></span>
     </div>
 
-    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <div class="row actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <label class="stack small narrow" style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
-        <span style="font-size:var(--small);color:var(--muted)">Status</span>
+        <span style="font-size:var(--small);color:var(--muted)">Action</span>
         <select class="input small statusSel" data-id="${t.id}">
           <option value="done"${(!status && !p.done)?' selected':''}>Done</option>
           <option value="skip"${status==='skip'?' selected':''}>Skip</option>
