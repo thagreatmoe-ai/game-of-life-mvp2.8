@@ -334,3 +334,16 @@ h2, h3 { margin: 0 0 10px; letter-spacing: .2px; }
 
 #toast[data-type="danger"] { background: rgba(255,107,107,.15); color:#ffc0c0; border-color:rgba(255,107,107,.35); }
 #toast[data-type="info"]   { background: rgba(123,140,255,.18); color:#c8d0ff; border-color:rgba(123,140,255,.35); }
+/* Gradient hero variant */
+.card.hero{
+  background: linear-gradient(135deg, #6f7cff33, #5adfb633);
+  border-color: transparent;
+}
+.fab{
+  position: fixed; right: 16px;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  padding: 12px 16px; border-radius: 999px; font-weight:700;
+  background: linear-gradient(90deg, var(--accent), #9aa7ff);
+  color: #0d1020; box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  border: none;
+}
