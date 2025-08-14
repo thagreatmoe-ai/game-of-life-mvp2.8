@@ -340,12 +340,16 @@ h2, h3 { margin: 0 0 10px; letter-spacing: .2px; }
   border-color: transparent;
 }
 .fab{
-  position: fixed; right: 16px;
+  position: fixed; right:16px;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
-  padding: 12px 16px; border-radius: 999px; font-weight:700;
+  width:56px; height:56px;
+  border-radius:50%;
+  display:none;                 /* hidden by default; JS will show on Today */
+  align-items:center; justify-content:center;
+  padding:0; line-height:1; font-size:28px; font-weight:700;
   background: linear-gradient(90deg, var(--accent), #9aa7ff);
-  color: #0d1020; box-shadow: 0 12px 30px rgba(0,0,0,.35);
-  border: none;
+  color:#0d1020; border:none;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
 }
 /* === Fix horizontal overflow & responsive actions === */
 html, body, main, .view { overflow-x: hidden; }
