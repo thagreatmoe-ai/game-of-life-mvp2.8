@@ -120,30 +120,94 @@ function renderHeader(){
 }
 function latestStatusFor(t){ const d=todayKey(); const row=state.history.slice().reverse().find(h=>h.taskId===t.id && h.date===d && (h.flags||[]).some(f=>f==='skip'||f==='postpone')); if(!row) return null; return (row.flags||[]).includes('skip')?'skip':'postpone'; }
 function renderTaskCard({t, p, status}){
-  const el=document.createElement('div'); let cls='item'; if(p.done) cls+=' done'; if(status==='skip') cls+=' skipped'; if(status==='postpone') cls+=' postponed'; el.className=cls;
-  const badge=p.done?'<span class="badge success">Completed</span>':(status==='skip'?'<span class="badge skip">Skipped</span>':(status==='postpone'?'<span class="badge postpone">Postponed</span>':''));
-  const info=`Base points${t.qtyType!=='times'?' (per unit)':''}: ${t.points} • Tokens reward (per unit): ${tokenRewardFor(t)} • Penalty tokens: ${penaltyFor(t)} • Field: ${getField(t.fieldId)?.name||'—'} • Req Lvl: ${t.levelReq||1}${t.notes?` • Notes: ${t.notes}`:''}`;
-  const progressText=`${p.val}/${p.target} ${unitLabel(t.qtyType)} • Freq: ${t.freq}${t.freq==='custom'||t.freq==='weekly'?` (${t.periodTarget}/week)`: (t.freq==='monthly'?` (${t.periodTarget}/mo)`: '')}`;
+  // t = task, p = progressNow(t), status = "skip"/"postpone"/null
+  const el = document.createElement('div');
+  let cls = 'item';
+  if (p.done) cls += ' done';
+  if (status === 'skip') cls += ' skipped';
+  if (status === 'postpone') cls += ' postponed';
+  el.className = cls;
+
+  const badge =
+    p.done
+      ? '<span class="badge success">Completed</span>'
+      : (status === 'skip'
+          ? '<span class="badge skip">Skipped</span>'
+          : (status === 'postpone'
+              ? '<span class="badge postpone">Postponed</span>'
+              : ''));
+
+  // helpers already exist in your codebase
+  const info = `Base points${t.qtyType!=='times'?' (per unit)':''}: ${t.points} • ` +
+               `Tokens/unit: ${Math.floor((t.points||0)/5)} • ` +
+               `Penalty: ${Math.floor(Math.floor((t.points||0)/5)*3)} • ` +
+               `Field: ${getField(t.fieldId)?.name || '—'} • Req Lvl: ${t.levelReq||1}`;
+
+  const progressText = `${p.val}/${p.target} ${ (t.qtyType==='minutes'?'min':(t.qtyType==='hours'?'h':'times')) } ` +
+                       `• Freq: ${t.freq}` +
+                       (t.freq==='custom'||t.freq==='weekly' ? ` (${t.periodTarget}/week)` :
+                        (t.freq==='monthly' ? ` (${t.periodTarget}/mo)` : ''));
+
   const disabled = p.done || status==='skip' || status==='postpone';
-  const units = (t.qtyType||'times')==='times' ? '' : `<label class="stack small narrow"><span>Add</span><input type="number" class="input small addQty" data-id="${t.id}" placeholder="${t.qtyType==='minutes'?'10':'1'}" inputmode="numeric"></label>`;
-  el.innerHTML=`<div class="grow"><div class="row-between"><strong>${t.name}</strong>${badge}</div><div class="sub small">${info}</div><div class="sub small">Progress: <strong>${progressText}</strong></div></div>
-  ${units}
-  <label class="stack small narrow"><span>Status</span>
-    <select class="input small statusSel" data-id="${t.id}">
-      <option value="done"${(!status&&!p.done)?' selected':''}>Done</option>
-      <option value="skip"${status==='skip'?' selected':''}>Skip</option>
-      <option value="postpone"${status==='postpone'?' selected':''}>Postpone</option>
-    </select>
-  </label>
-  <button class="btn alt small applyBtn" data-id="${t.id}" ${disabled?'disabled':''}>Apply</button>
-  ${(p.val>0||status)?`<button class="btn alt small undoOne" data-id="${t.id}">Undo</button>`:''}`;
-  el.querySelector('.applyBtn').onclick=()=>{
-    const sel=el.querySelector('.statusSel').value;
-    if(sel==='done'){ if((t.qtyType||'times')==='times'){ completeTask(t.id,1);} else { const amt=Number(el.querySelector('.addQty')?.value||0); if(amt<=0){alert('Enter amount');return;} completeTask(t.id,amt);} }
-    if(sel==='skip') markStatus(t.id,'skip');
-    if(sel==='postpone') markStatus(t.id,'postpone');
+
+  // Amount input only for minutes/hours
+  const units = (t.qtyType||'times')==='times'
+    ? ''
+    : `<label class="stack small narrow" style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
+         <span style="font-size:var(--small);color:var(--muted)">Add</span>
+         <input type="number" class="input small addQty" data-id="${t.id}" placeholder="${t.qtyType==='minutes'?'10':'1'}" inputmode="numeric">
+       </label>`;
+
+  el.innerHTML = `
+    <div class="row" style="display:flex;justify-content:space-between;gap:8px">
+      <strong>${t.name}</strong>
+      ${badge}
+    </div>
+
+    <div class="sub small" style="color:var(--muted);margin:6px 0 8px">
+      ${info}
+    </div>
+
+    <div class="bar"><div class="fill" style="width:${Math.min(100, (p.target? (p.val/p.target*100) : 0))}%"></div></div>
+    <div class="sub small" style="margin-top:6px;display:flex;justify-content:space-between;color:var(--muted)">
+      <span>Progress: <b>${progressText}</b></span>
+      <span>Status: <b>${status ? status : (p.done?'completed':'active')}</b></span>
+    </div>
+
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <label class="stack small narrow" style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
+        <span style="font-size:var(--small);color:var(--muted)">Status</span>
+        <select class="input small statusSel" data-id="${t.id}">
+          <option value="done"${(!status && !p.done)?' selected':''}>Done</option>
+          <option value="skip"${status==='skip'?' selected':''}>Skip</option>
+          <option value="postpone"${status==='postpone'?' selected':''}>Postpone</option>
+        </select>
+      </label>
+      ${units}
+      <button class="btn alt small applyBtn" data-id="${t.id}" ${disabled?'disabled':''}>Apply</button>
+      ${(p.val>0 || status) ? `<button class="btn alt small undoOne" data-id="${t.id}">Undo</button>` : ''}
+    </div>
+  `;
+
+  // Actions
+  el.querySelector('.applyBtn').onclick = () => {
+    const sel = el.querySelector('.statusSel').value;
+    if (sel === 'done') {
+      if ((t.qtyType||'times') === 'times') {
+        completeTask(t.id, 1);
+      } else {
+        const amt = Number(el.querySelector('.addQty')?.value || 0);
+        if (amt <= 0) { alert('Enter amount'); return; }
+        completeTask(t.id, amt);
+      }
+    }
+    if (sel === 'skip')      markStatus(t.id, 'skip');
+    if (sel === 'postpone')  markStatus(t.id, 'postpone');
   };
-  const u=el.querySelector('.undoOne'); if(u) u.onclick=()=> undoRecentForTask(t.id);
+
+  const u = el.querySelector('.undoOne');
+  if (u) u.onclick = () => undoRecentForTask(t.id);
+
   return el;
 }
 function renderToday(){
