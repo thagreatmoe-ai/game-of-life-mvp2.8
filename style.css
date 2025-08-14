@@ -358,3 +358,37 @@ html, body, main, .view { overflow-x: hidden; }
 
 /* If you keep the floating + Task button, hide the header + Task to avoid duplicates */
 #view-today #btnAddTask { display: none; }
+/* ===== Compact task card with expandable details ===== */
+.item{ position:relative; cursor:pointer; max-width:100%; }
+.item .summary{ display:flex; align-items:center; gap:12px; }
+.item .summary .title{ font-weight:700; font-size:18px; flex:1; }
+.item .summary .count{ font-weight:700; color:#cfd5ff; }
+
+/* Progress bar already exists; we just ensure spacing */
+.item .bar{ margin-top:8px; }
+
+/* Details are collapsed by default */
+.item .details{
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:max-height .25s ease, opacity .2s ease;
+  margin-top:8px;
+}
+.item.open .details{ max-height:420px; opacity:1; }
+
+/* Info grid inside details */
+.item .info-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+@media (max-width:420px){ .item .info-grid{ grid-template-columns:1fr; } }
+
+/* Action row: wraps neatly on iPhone width */
+.item .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.item .actions .stack{ flex:1 1 220px; min-width:220px; }
+.item .actions .btn{ flex:1 1 120px; min-width:120px; }
+.item .actions select.input, .item .actions input.input{ width:100%; }
+
+/* Prevent page side-scrolling */
+html, body, main, .view{ overflow-x:hidden; }
+
+/* If you keep the floating + Task button, hide header +Task to avoid duplicates */
+#view-today #btnAddTask{ display:none; }
