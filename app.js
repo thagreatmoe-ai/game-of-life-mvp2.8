@@ -630,8 +630,38 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // Focus session
   let sessM=25, timer=null, left=0;
   $$('.sess').forEach(b=> b.onclick=()=>{ sessM=Number(b.dataset.m); $('#customMin').value=''; });
-  $('#btnStartSession').onclick=()=>{ const cm=Number($('#customMin').value||sessM); if(cm<=0) return; left=cm*60; clearInterval(timer); $('#timerBox').textContent=`Session ${cm}m started…`; timer=setInterval(()=>{ left--; if(left<=0){ clearInterval(timer); $('#timerBox').textContent='Session complete — log your task now!'; navigator.vibrate?.(200);} else { const m=Math.floor(left/60), s=left%60; $('#timerBox').textContent=`Time left ${m}:${String(s).padStart(2,'0')}`; } },1000); };
-  $('#btnStopSession').onclick=()=>{ clearInterval(timer); timer=null; $('#timerBox').textContent='Session stopped.'; navigator.vibrate?.(50); };
+  // Toggle-based start/stop
+const sessToggle = $('#sessToggle');
+if (sessToggle){
+  sessToggle.addEventListener('change', ()=>{
+    if (sessToggle.checked){
+      const cm = Number($('#customMin').value || sessM);
+      if (cm <= 0){ sessToggle.checked = false; return; }
+      left = cm * 60;
+      clearInterval(timer);
+      $('#timerBox').textContent = `Session ${cm}m started…`;
+      $('#sessToggleText').textContent = 'On';
+      timer = setInterval(()=>{
+        left--;
+        if(left <= 0){
+          clearInterval(timer); timer=null;
+          $('#timerBox').textContent='Session complete — log your task now!';
+          $('#sessToggle').checked = false;
+          $('#sessToggleText').textContent = 'Off';
+          navigator.vibrate?.(200);
+        }else{
+          const m=Math.floor(left/60), s=left%60;
+          $('#timerBox').textContent=`Time left ${m}:${String(s).padStart(2,'0')}`;
+        }
+      }, 1000);
+    } else {
+      clearInterval(timer); timer=null;
+      $('#timerBox').textContent='Session stopped.';
+      $('#sessToggleText').textContent = 'Off';
+      navigator.vibrate?.(50);
+    }
+  });
+}
 
   // Prestige
   $('#btnPrestige').onclick=()=>{ if($('#prestigeConfirm').value.trim().toUpperCase()!=='PRESTIGE'){ alert('Type PRESTIGE'); return; } const pct=Number($('#prestigePct').value||0); state.user.prestigeBonus=(state.user.prestigeBonus||0)+pct; state.user.avatarStage=Math.min(5,(state.user.avatarStage||0)+1); state.level=1; state.xp=0; state.fields.forEach(f=>{ f.level=1; f.xp=0; }); save(); renderAll(); alert('Prestiged!'); };
