@@ -130,96 +130,104 @@ function renderHeader(){
 }
 function latestStatusFor(t){ const d=todayKey(); const row=state.history.slice().reverse().find(h=>h.taskId===t.id && h.date===d && (h.flags||[]).some(f=>f==='skip'||f==='postpone')); if(!row) return null; return (row.flags||[]).includes('skip')?'skip':'postpone'; }
 function renderTaskCard({t, p, status}){
-  // t = task, p = progressNow(t), status = "skip"/"postpone"/null
+  // t = task, p = progressNow(t), status = 'skip'|'postpone'|null
   const el = document.createElement('div');
-  let cls = 'item';
-  if (p.done) cls += ' done';
-  if (status === 'skip') cls += ' skipped';
-  if (status === 'postpone') cls += ' postponed';
-  el.className = cls;
+  el.className = 'item' +
+    (p.done ? ' done' : '') +
+    (status==='skip' ? ' skipped' : '') +
+    (status==='postpone' ? ' postponed' : '');
+
+  const unitLabel = (t.qtyType==='minutes'?'min':(t.qtyType==='hours'?'h':'times'));
+  const tokensUnit = Math.floor((t.points||0)/5);
+  const penaltyTok = tokensUnit * 3;
+  const fieldName = getField(t.fieldId)?.name || '—';
+  const canAct = !(p.done || status==='skip' || status==='postpone');
 
   const badge =
-    p.done
-      ? '<span class="badge success">Completed</span>'
-      : (status === 'skip'
-          ? '<span class="badge skip">Skipped</span>'
-          : (status === 'postpone'
-              ? '<span class="badge postpone">Postponed</span>'
-              : ''));
+    p.done ? '<span class="badge success">Completed</span>' :
+    status==='skip' ? '<span class="badge skip">Skipped</span>' :
+    status==='postpone' ? '<span class="badge postpone">Postponed</span>' : '';
 
-  // helpers already exist in your codebase
-  const info = `Base points${t.qtyType!=='times'?' (per unit)':''}: ${t.points} • ` +
-               `Tokens/unit: ${Math.floor((t.points||0)/5)} • ` +
-               `Penalty: ${Math.floor(Math.floor((t.points||0)/5)*3)} • ` +
-               `Field: ${getField(t.fieldId)?.name || '—'} • Req Lvl: ${t.levelReq||1}`;
-
-  const progressText = `${p.val}/${p.target} ${ (t.qtyType==='minutes'?'min':(t.qtyType==='hours'?'h':'times')) } ` +
-                       `• Freq: ${t.freq}` +
-                       (t.freq==='custom'||t.freq==='weekly' ? ` (${t.periodTarget}/week)` :
-                        (t.freq==='monthly' ? ` (${t.periodTarget}/mo)` : ''));
-
-  const disabled = p.done || status==='skip' || status==='postpone';
-
-  // Amount input only for minutes/hours
-  const units = (t.qtyType||'times')==='times'
-    ? ''
-    : `<label class="stack small narrow" style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
-         <span style="font-size:var(--small);color:var(--muted)">Add</span>
-         <input type="number" class="input small addQty" data-id="${t.id}" placeholder="${t.qtyType==='minutes'?'10':'1'}" inputmode="numeric">
-       </label>`;
+  const progressPct = p.target ? Math.min(100, (p.val/p.target*100)) : 0;
 
   el.innerHTML = `
-    <div class="row" style="display:flex;justify-content:space-between;gap:8px">
-      <strong>${t.name}</strong>
+    <div class="summary">
+      <strong class="title">${t.name}</strong>
+      <span class="count">${p.val}/${p.target}</span>
       ${badge}
     </div>
 
-    <div class="sub small" style="color:var(--muted);margin:6px 0 8px">
-      ${info}
-    </div>
+    <div class="bar"><div class="fill" style="width:${progressPct}%"></div></div>
 
-    <div class="bar"><div class="fill" style="width:${Math.min(100, (p.target? (p.val/p.target*100) : 0))}%"></div></div>
-    <div class="sub small" style="margin-top:6px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; color:var(--muted)">
-  <span>Progress: <b>${progressText}</b></span>
-  ${ p.done ? '' : `<span>Status: <b>${status ? status : 'active'}</b></span>` }
-</div>
-      <span>Progress: <b>${progressText}</b></span>
-      <span>Status: <b>${status ? status : (p.done?'completed':'active')}</b></span>
-    </div>
+    <div class="details">
+      <div class="info-grid">
+        <div class="sub small">Base points${t.qtyType!=='times'?' (per unit)':''}: <b>${t.points||0}</b></div>
+        <div class="sub small">Tokens/unit: <b>${tokensUnit}</b></div>
+        <div class="sub small">Penalty: <b>${penaltyTok}</b></div>
+        <div class="sub small">Field: <b>${fieldName}</b></div>
+        <div class="sub small">Freq: <b>${t.freq}</b></div>
+        <div class="sub small">Qty type: <b>${unitLabel}</b></div>
+      </div>
 
-    <div class="row actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <label class="stack small narrow" style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
-        <span style="font-size:var(--small);color:var(--muted)">Action</span>
-        <select class="input small statusSel" data-id="${t.id}">
-          <option value="done"${(!status && !p.done)?' selected':''}>Done</option>
-          <option value="skip"${status==='skip'?' selected':''}>Skip</option>
-          <option value="postpone"${status==='postpone'?' selected':''}>Postpone</option>
-        </select>
-      </label>
-      ${units}
-      <button class="btn alt small applyBtn" data-id="${t.id}" ${disabled?'disabled':''}>Apply</button>
-      ${(p.val>0 || status) ? `<button class="btn alt small undoOne" data-id="${t.id}">Undo</button>` : ''}
+      <div class="actions">
+        <label class="stack small" style="display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:var(--small);color:var(--muted)">Action</span>
+          <select class="input small statusSel" data-id="${t.id}">
+            <option value="done">Done</option>
+            <option value="skip">Skip</option>
+            <option value="postpone">Postpone</option>
+          </select>
+        </label>
+
+        ${ t.qtyType==='times' ? '' : `
+        <label class="stack small" style="display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:var(--small);color:var(--muted)">Amount (${unitLabel})</span>
+          <input type="number" class="input small addQty" data-id="${t.id}" placeholder="${t.qtyType==='minutes'?'10':'1'}" inputmode="numeric">
+        </label>`}
+
+        <button class="btn alt applyBtn" ${canAct?'':'disabled'}>Apply</button>
+        ${(p.val>0 || status) ? `<button class="btn alt undoOne">Undo</button>` : ''}
+        <button class="btn alt editTask">Edit</button>
+        <button class="btn danger delTask">Delete</button>
+      </div>
     </div>
   `;
 
+  // Toggle open/close when tapping the header area
+  el.querySelector('.summary').onclick = (e)=>{ el.classList.toggle('open'); };
+
+  // Don’t toggle the card when interacting with controls
+  el.querySelector('.details').addEventListener('click', (ev)=>{ ev.stopPropagation(); });
+
   // Actions
-  el.querySelector('.applyBtn').onclick = () => {
+  el.querySelector('.applyBtn').onclick = ()=>{
     const sel = el.querySelector('.statusSel').value;
-    if (sel === 'done') {
-      if ((t.qtyType||'times') === 'times') {
-        completeTask(t.id, 1);
-      } else {
+    if(sel==='done'){
+      if(t.qtyType==='times'){ completeTask(t.id, 1); }
+      else{
         const amt = Number(el.querySelector('.addQty')?.value || 0);
-        if (amt <= 0) { alert('Enter amount'); return; }
+        if(amt<=0){ alert('Enter amount'); return; }
         completeTask(t.id, amt);
       }
-    }
-    if (sel === 'skip')      markStatus(t.id, 'skip');
-    if (sel === 'postpone')  markStatus(t.id, 'postpone');
+    }else if(sel==='skip'){ markStatus(t.id,'skip'); }
+     else if(sel==='postpone'){ markStatus(t.id,'postpone'); }
   };
 
   const u = el.querySelector('.undoOne');
-  if (u) u.onclick = () => undoRecentForTask(t.id);
+  if(u) u.onclick = (ev)=>{ ev.stopPropagation(); undoRecentForTask(t.id); };
+
+  el.querySelector('.delTask').onclick = (ev)=>{
+    ev.stopPropagation();
+    if(!confirm('You sure you want to delete this task?')) return;
+    const idx = state.tasks.findIndex(x=>x.id===t.id);
+    if(idx>-1){ state.tasks.splice(idx,1); save(); renderAll(); showToast('Task deleted','danger'); }
+  };
+
+  el.querySelector('.editTask').onclick = (ev)=>{
+    ev.stopPropagation();
+    openTasks && openTasks(); // takes you to the Tasks manager to edit
+    showToast('Open “Tasks” to edit', 'info');
+  };
 
   return el;
 }
