@@ -484,3 +484,26 @@ body{
 .fab{
   bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px) !important;
 }
+/* === Compact tabbar: match earlier build height === */
+:root{
+  --tabbar-h:48px;   /* was 56px; keeps iOS safe-area via env() */
+}
+
+/* Keep height in sync with the new variable (explicit here for clarity) */
+#tabbar{
+  height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* Slightly tighter content so the bar looks slimmer */
+#tabbar .tab{
+  min-height:44px;            /* keep Apple HIG touch target */
+  gap:2px;                    /* was ~6px */
+  padding:6px 0 4px;          /* subtle vertical compaction */
+  font-size:13px;             /* optional: a touch smaller label */
+}
+#tabbar .tab svg{
+  width:18px; height:18px;    /* icons scale with the slimmer bar */
+}
+
+/* (The FAB already uses var(--tabbar-h), so it will auto-shift up.) */
