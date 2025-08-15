@@ -463,3 +463,24 @@ body{
 #backdrop{ position: fixed; inset: 0; }
 
 /* If you previously added body padding on multiple places, this override keeps things consistent. */
+/* ===== Tighten bottom safe-area so there's no huge gap under the tab bar ===== */
+:root{
+  /* Allow a small buffer for the home indicator but cap it so it doesn't look massive */
+  --safe-bottom: clamp(6px, env(safe-area-inset-bottom), 12px);
+}
+
+/* Content keeps clear of the fixed tabbar using the tightened value */
+body{
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom)) !important;
+}
+
+/* Make the tabbar itself shorter and still cover the home indicator area */
+#tabbar{
+  height: calc(var(--tabbar-h) + var(--safe-bottom)) !important;
+  padding-bottom: var(--safe-bottom) !important;
+}
+
+/* Keep the floating + button sitting just above the tabbar */
+.fab{
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px) !important;
+}
