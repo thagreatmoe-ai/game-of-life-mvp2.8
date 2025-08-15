@@ -212,6 +212,7 @@ main{ padding:12px; }
 /* Optional: ensure nice top/bottom edges inside Profile view */
 #view-profile .card:first-child{ margin-top: 18px; }
 #view-profile .card:last-child{  margin-bottom: 18px; }
+
 /* -------- Bottom tabbar -------- */
 #tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
@@ -391,3 +392,6 @@ h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
   max-width: 100%;
   box-sizing: border-box;
 }
+/* Hide existing-task list/cards inside the sheet when launched via FAB (add-only mode) */
+.addMode #sheet .list { display: none !important; }
+.addMode #sheet .item { display: none !important; }
