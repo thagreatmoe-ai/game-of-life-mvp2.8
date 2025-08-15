@@ -411,3 +411,25 @@ h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
   overflow:hidden;
   text-overflow:ellipsis;     /* protects layout if text gets long */
 }
+/* === Today page: restore comfy size for the "Today's Tasks" card === */
+
+/* Add outside breathing room only to the big card under the top grid */
+#view-today > .card{
+  margin: 18px 12px;
+}
+
+/* Make the list area taller so the whole card doesn't look shrunken
+   when there are only a few tasks */
+#todayTasks{
+  min-height: 300px;          /* tweak to taste: 280–340px works well */
+  display: flex;               /* ensure flex container for gap to apply */
+  flex-direction: column;
+  gap: 12px;                   /* a bit more than the generic .list (8px) */
+  padding-bottom: 6px;         /* tiny breathing room at the bottom */
+}
+
+/* Slightly roomier task tiles inside that card */
+#todayTasks .item{
+  padding: 16px 18px;          /* up from 14x16 */
+  margin: 12px 6px;            /* a touch more separation between tiles */
+}
