@@ -150,9 +150,35 @@ main{ padding:12px; }
 .fill{ height:100%; background:linear-gradient(90deg,var(--accent),#a9b4ff); width:0%; transition:width .25s ease; }
 
 /* Tables */
-.table{ width:100%; border-collapse:collapse; }
-.table th,.table td{ border-bottom:1px solid var(--border); text-align:left; padding:8px; font-size:13px; }
+/* Tables (prevent right-edge clipping in History) */
+.table{
+  width:100%;
+  border-collapse: collapse;
+  table-layout: fixed;              /* keep table inside the card */
+}
+.table th,
+.table td{
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  padding:8px;
+  font-size:13px;
+  overflow: hidden;                 /* clip long text instead of growing width */
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
 
+/* Reserve room for the Undo button and keep it off the rounded edge */
+.table th:last-child,
+.table td:last-child{
+  width:92px;                       /* space for the pill button */
+  white-space: nowrap;
+  overflow: visible;
+  padding-right:12px;               /* breathing room from the card radius */
+}
+
+.table td:last-child .btn{
+  display:inline-block;             /* keep button size natural */
+}
 /* -------- Bottom tabbar -------- */
 #tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
