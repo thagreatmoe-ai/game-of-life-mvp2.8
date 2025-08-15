@@ -470,23 +470,8 @@ function renderHistory(){
   const tb = $('#histTable tbody');
   tb.innerHTML = '';
 
-  // small helper for long-press
-  function attachLongPress(el, onLongPress, onTap){
-    let timer = null, fired = false;
-
-    const start = () => {
-      fired = false;
-      timer = setTimeout(()=>{ fired = true; onLongPress(); }, 450); // ~0.45s hold
-    };
-    const clear = () => {
-      if(timer){ clearTimeout(timer); timer = null; if(!fired && onTap) onTap(); }
-    };
-
-    el.addEventListener('pointerdown', start);
-    el.addEventListener('pointerup', clear);
-    el.addEventListener('pointerleave', clear);
-    el.addEventListener('pointercancel', clear);
-  }
+  // Track the currently open main row so only one stays open
+  let openRow = null;
 
   const rows = state.history.slice().reverse();
   rows.forEach(h=>{
@@ -504,6 +489,7 @@ function renderHistory(){
       <td>${h.final}</td>
       <td>${h.tokens || 0}</td>
       <td class="small">${(h.flags || []).join(', ')}</td>
+      <td></td>
     `;
 
     // Hidden action row (full width) right after the main row
@@ -512,44 +498,38 @@ function renderHistory(){
     trUndo.innerHTML = `
       <td colspan="7">
         <div class="actions">
-          ${canUndo ? `<button class="btn alt small">Undo</button>` :
-                       `<span class="sub small">Undo not available</span>`}
+          ${canUndo ? `<button class="btn alt small">Undo</button>`
+                    : `<span class="sub small">Undo not available</span>`}
         </div>
       </td>
     `;
-    if(canUndo){
-      trUndo.querySelector('button').onclick = () => { undoEntry(h.id); };
+
+    if (canUndo){
+      const btn = trUndo.querySelector('button');
+      btn.onclick = (ev)=>{ ev.stopPropagation(); undoEntry(h.id); };
     }
 
-    // Long-press to show actions; tap to hide if open
-    attachLongPress(tr,
-      () => {
-        if(!canUndo) return;
-        // close any other open row
-        $$('#histTable tbody .hist-row.show-undo')
-          .forEach(r => r.classList.remove('show-undo'));
-        tr.classList.add('show-undo');
-      },
-      () => {
-        // simple tap toggles it off if already open
-        if(tr.classList.contains('show-undo')){
-          tr.classList.remove('show-undo');
-        }
-      }
-    );
+    // Single-tap to toggle this row's action panel
+    tr.addEventListener('click', ()=>{
+      const willOpen = openRow !== tr;
+      if (openRow && openRow !== tr) openRow.classList.remove('show-undo');
+      tr.classList.toggle('show-undo', willOpen);
+      openRow = willOpen ? tr : null;
+    });
 
     tb.appendChild(tr);
     tb.appendChild(trUndo);
   });
 
-  // tap anywhere outside the history table to close any open action rows
-  document.addEventListener('click', (e)=>{
-    const inside = e.target.closest('#histTable');
-    if(!inside){
-      $$('#histTable tbody .hist-row.show-undo')
-        .forEach(r => r.classList.remove('show-undo'));
-    }
-  }, { once:true });
+  // Tap outside the table to close any open action rows (one-time listener)
+  const outsideClose = (e)=>{
+    const t = e.target;
+    if (t && t.closest && t.closest('#histTable')) return;
+    $$('#histTable tbody .hist-row.show-undo')
+      .forEach(r => r.classList.remove('show-undo'));
+    document.removeEventListener('click', outsideClose, true);
+  };
+  document.addEventListener('click', outsideClose, true);
 }
 
 function renderKPIs(){
