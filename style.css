@@ -540,3 +540,29 @@ body{
   background: inherit;                             /* same color as bar */
   pointer-events: none;
 }
+/* === Flush tab bar to the true bottom (no visible gap) === */
+/* Place at the very end of style.css */
+
+/* Content should only reserve the bar's visual height, not the iOS inset again */
+body{
+  padding-bottom: var(--tabbar-h) !important;
+}
+
+/* The bar itself is exactly --tabbar-h tall; we'll paint the safe-area below it */
+#tabbar{
+  height: var(--tabbar-h) !important;
+  padding-bottom: 0 !important;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  overflow: visible;            /* so the pseudo-element can render below */
+}
+
+/* Visually fill the iOS home-indicator area so the bar appears attached */
+#tabbar::after{
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: env(safe-area-inset-bottom);
+  background: inherit;          /* same bg as the tabbar */
+  border-top: 1px solid var(--border);
+  pointer-events: none;         /* that area is not tappable on iOS anyway */
+  transform: translateY(100%);  /* render it just below the bar */
+}
