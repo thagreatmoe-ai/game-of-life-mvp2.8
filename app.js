@@ -764,7 +764,12 @@ function openTitles(){
       <button class="btn" id="btnAddT">+ Title</button>
     </div>`);
   $('#closeSheet').onclick=closeSheet;
-  $$('#sheet .item .btn').forEach(b=> b.onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.titles=state.titles.filter(x=>x.id!==t.dataset.id); save(); openTitles(); renderTitles(); });
+  $$('#sheet .item .btn').forEach(b => b.onclick = () => {
+  if(!confirm('You sure you want to delete this?')) return;
+  // ✅ correct: use the button’s data-id
+  state.titles = state.titles.filter(x => x.id !== b.dataset.id);
+  save(); openTitles(); renderTitles();
+});
   $('#btnAddT').onclick=()=>{ state.titles.push({id:uid(), name:$('#ttlName').value||'Title', boost:Number($('#ttlBoost').value||0), scope:$('#ttlScope').value}); save(); openTitles(); renderTitles(); };
 }
 function openRewards(){
