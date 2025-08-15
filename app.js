@@ -645,63 +645,99 @@ function undoEntry(id){
 }
 
 // Sheets (Tasks/Fields/Titles/Rewards/Theme/Backup/Settings) — unchanged except minor safety
-function openTasks(){
-  const rows = state.tasks.map(t=>`<div class="item"><div class="grow"><strong>${t.name}</strong><div class="sub small">Points: ${t.points} • Tokens/unit: ${tokenRewardFor(t)} • Penalty: ${penaltyFor(t)} • Field: ${getField(t.fieldId)?.name||'—'} • Lvl req: ${t.levelReq||1} • Freq: ${t.freq}${t.freq!=='daily'?` (target: ${targetForFreq(t)})`:''} • Qty/unit: ${t.qtyValue} ${unitLabel(t.qtyType)}</div></div><button class="btn alt small" data-id="${t.id}">Delete</button></div>`).join('') || '<div class="sub small">No tasks yet.</div>';
-  openSheet(`<div class="row-between"><h3>Tasks</h3><button class="btn alt small" id="closeSheet">Close</button></div>
-  ${rows}
-  <div class="row gap8" style="margin-top:8px; flex-wrap:wrap">
-    <label class="stack small"><span>Task name</span><input id="tName" class="input" placeholder="e.g., Read 20 pages"></label>
-    <label class="stack small"><span>Base points (per unit)</span><input id="tPts" class="input small" type="number" value="50" inputmode="numeric"></label>
-    <label class="stack small"><span>Tokens reward (auto: pts/5)</span><input id="tTok" class="input small" type="number" value="10" inputmode="numeric"></label>
-    <label class="stack small"><span>Penalty tokens (auto: reward*3)</span><input id="tPenTok" class="input small" type="number" value="30" inputmode="numeric"></label>
-    <label class="stack small"><span>Field</span><select id="tField" class="input small"></select></label>
-    <label class="stack small"><span>Required level</span><input id="tLvl" class="input small" type="number" value="1" inputmode="numeric"></label>
-    <label class="stack small"><span>Is it mandatory?</span><select id="tMand" class="input small"><option value="no">Optional</option><option value="yes">Mandatory</option></select></label>
-    <label class="stack small"><span>Quantity</span><select id="tQtyType" class="input small"><option value="times">Times</option><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
-    <label class="stack small"><span id="tQtyLabel">Target (times)</span><input id="tQtyVal" class="input small" type="number" value="1" inputmode="numeric"></label>
-    <label class="stack small"><span>Frequency</span>
-      <select id="tFreq" class="input small">
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="custom">Custom (per week)</option>
-        <option value="once">One-time</option>
-      </select>
-    </label>
-    <label class="stack small" id="perTargetRow"><span id="tPerTargetLabel">Period target</span><input id="tPerTarget" class="input small" type="number" value="1" inputmode="numeric"></label>
-    <label class="stack small"><span>Notes</span><input id="tNotes" class="input" placeholder="Optional notes"></label>
-    <button class="btn" id="btnSaveTask">+ Task</button>
-  </div>`);
-  $('#closeSheet').onclick=closeSheet;
+function openTasks(addOnly = false){
+  // Build the task list only when NOT in "add-only" mode
+  const rows = addOnly
+    ? ''
+    : (state.tasks.map(t =>
+        `<div class="item">
+           <div class="grow">
+             <strong>${t.name}</strong>
+             <div class="sub small">
+               Points: ${t.points} • Tokens/unit: ${tokenRewardFor(t)} • Penalty: ${penaltyFor(t)} •
+               Field: ${getField(t.fieldId)?.name||'—'} • Lvl req: ${t.levelReq||1} •
+               Freq: ${t.freq}${t.freq!=='daily'?` (target: ${targetForFreq(t)})`:''} •
+               Qty/unit: ${t.qtyValue} ${unitLabel(t.qtyType)}
+             </div>
+           </div>
+           <button class="btn alt small" data-id="${t.id}">Delete</button>
+         </div>`
+      ).join('') || '<div class="sub small">No tasks yet.</div>');
+
+  const heading = addOnly ? 'Add Task' : 'Tasks';
+
+  openSheet(
+    `<div class="row-between">
+        <h3>${heading}</h3>
+        <button class="btn alt small" id="closeSheet">Close</button>
+     </div>
+     ${rows}
+     <div class="row gap8" style="margin-top:8px; flex-wrap:wrap">
+       <label class="stack small"><span>Task name</span><input id="tName" class="input" placeholder="e.g., Read 20 pages"></label>
+       <label class="stack small"><span>Base points (per unit)</span><input id="tPts" class="input small" type="number" value="50" inputmode="numeric"></label>
+       <label class="stack small"><span>Tokens reward (auto: pts/5)</span><input id="tTok" class="input small" type="number" value="10" inputmode="numeric"></label>
+       <label class="stack small"><span>Penalty tokens (auto: reward*3)</span><input id="tPenTok" class="input small" type="number" value="30" inputmode="numeric"></label>
+       <label class="stack small"><span>Field</span><select id="tField" class="input small"></select></label>
+       <label class="stack small"><span>Required level</span><input id="tLvl" class="input small" type="number" value="1" inputmode="numeric"></label>
+       <label class="stack small"><span>Is it mandatory?</span><select id="tMand" class="input small"><option value="no">Optional</option><option value="yes">Mandatory</option></select></label>
+       <label class="stack small"><span>Quantity</span><select id="tQtyType" class="input small"><option value="times">Times</option><option value="minutes">Minutes</option><option value="hours">Hours</option></select></label>
+       <label class="stack small"><span id="tQtyLabel">Target (times)</span><input id="tQtyVal" class="input small" type="number" value="1" inputmode="numeric"></label>
+       <label class="stack small"><span>Frequency</span>
+         <select id="tFreq" class="input small">
+           <option value="daily">Daily</option>
+           <option value="weekly">Weekly</option>
+           <option value="monthly">Monthly</option>
+           <option value="custom">Custom (per week)</option>
+           <option value="once">One-time</option>
+         </select>
+       </label>
+       <label class="stack small" id="perTargetRow"><span id="tPerTargetLabel">Period target</span><input id="tPerTarget" class="input small" type="number" value="1" inputmode="numeric"></label>
+       <label class="stack small"><span>Notes</span><input id="tNotes" class="input" placeholder="Optional notes"></label>
+       <button class="btn" id="btnSaveTask">+ Task</button>
+     </div>`
+  );
+
+  $('#closeSheet').onclick = closeSheet;
 
   // populate fields
-  const sel=$('#tField'); if(sel) sel.innerHTML = state.fields.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  const sel = $('#tField');
+  sel.innerHTML = state.fields.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
 
-  // auto tokens calc
+  // tokens auto-calc
   function recalcTokens(){
     const pts = Number($('#tPts').value||0);
     const tok = Math.floor(pts/5);
     $('#tTok').value = tok;
     $('#tPenTok').value = tok*3;
   }
-  $('#tPts').oninput=recalcTokens; recalcTokens();
+  $('#tPts').oninput = recalcTokens; recalcTokens();
 
-  const qtySel=$('#tQtyType'), qtyLbl=$('#tQtyLabel'), freqSel=$('#tFreq'), perRow=$('#perTargetRow');
-  if(qtySel && qtyLbl){
-    qtySel.onchange=()=>{ qtyLbl.textContent = qtySel.value==='times'?'Target (times)':(qtySel.value==='minutes'?'Target (minutes)':'Target (hours)'); };
-  }
+  const qtySel = $('#tQtyType'), qtyLbl = $('#tQtyLabel'),
+        freqSel = $('#tFreq'),    perRow = $('#perTargetRow');
+  qtySel.onchange = () => {
+    qtyLbl.textContent = qtySel.value==='times' ? 'Target (times)'
+                     : (qtySel.value==='minutes' ? 'Target (minutes)' : 'Target (hours)');
+  };
   function onFreqChange(){
-    const v=freqSel.value;
-    const show = !(v==='daily'||v==='once');
-    perRow.style.display = show?'block':'none';
+    const v = freqSel.value;
+    perRow.style.display = (v==='daily'||v==='once') ? 'none' : 'block';
   }
-  freqSel.onchange=onFreqChange; onFreqChange();
+  freqSel.onchange = onFreqChange; onFreqChange();
 
-  $$('#sheet .item .btn').forEach(b=> b.onclick=()=>{ if(!confirm('You sure you want to delete this?')) return; state.tasks=state.tasks.filter(x=>x.id!==b.dataset.id); save(); openTasks(); renderToday(); });
-  $('#btnSaveTask').onclick=()=>{
-    const freqVal=$('#tFreq').value;
+  // Only wire up delete buttons when list is visible
+  if(!addOnly){
+    $$('#sheet .item .btn').forEach(b => b.onclick = () => {
+      if(!confirm('You sure you want to delete this?')) return;
+      state.tasks = state.tasks.filter(x => x.id !== b.dataset.id);
+      save(); openTasks(false); renderToday();
+    });
+  }
+
+  // Save task (stay in same mode)
+  $('#btnSaveTask').onclick = () => {
+    const freqVal = $('#tFreq').value;
     const perTarget = (freqVal==='daily'||freqVal==='once') ? null : Number($('#tPerTarget').value||1);
-    const t={
+    const t = {
       id:uid(), name:$('#tName').value||'Task', points:Number($('#tPts').value||0),
       tokenReward:Number($('#tTok').value||0), penaltyTok:Number($('#tPenTok').value||0),
       fieldId:$('#tField').value, levelReq:Number($('#tLvl').value||1),
@@ -709,7 +745,7 @@ function openTasks(){
       qtyType:$('#tQtyType').value, qtyValue:Number($('#tQtyVal').value||1),
       freq:freqVal, periodTarget: perTarget
     };
-    state.tasks.push(t); save(); openTasks(); renderToday();
+    state.tasks.push(t); save(); openTasks(addOnly); renderToday();
   };
 }
 function openFields(){
@@ -885,20 +921,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // Floating +Task FAB
-  const fab = $('#fabAddTask');
-  if (fab){
-    fab.onclick = () => {
-      document.body.classList.add('addMode');
-      $('#btnAddTask')?.click();
-    };
-    function updateFab(){
-      const isToday = $('#view-today')?.classList.contains('active');
-      fab.style.display = isToday ? 'flex' : 'none';
-    }
-    updateFab();
-    $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
+  const fab = document.getElementById('fabAddTask');
+if (fab){
+  fab.onclick = () => {
+    document.body.classList.add('addMode');   // optional; keeps your CSS override if you want it
+    openTasks(true);                          // <-- open in "add-only" mode
+  };
+
+  function updateFab(){
+    const isToday = document.getElementById('view-today')?.classList.contains('active');
+    fab.style.display = isToday ? 'flex' : 'none';
   }
-});
+  updateFab();
+  $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
+}
 
 // Utils
 function openSheet(html){ const s=$('#sheet'); s.innerHTML=html; s.classList.add('open'); }
