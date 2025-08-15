@@ -433,3 +433,33 @@ h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
   padding: 16px 18px;          /* up from 14x16 */
   margin: 12px 6px;            /* a touch more separation between tiles */
 }
+/* ===== Fix header position & drawer stacking (override block) ===== */
+
+/* Remove the extra top padding on <body>. The header handles the safe area. */
+body{
+  padding-top: 0 !important;
+}
+
+/* Keep the header safe-area padding but make sure it sits flush at the top. */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 30; /* below the drawer we set higher, above content */
+  /* keep your existing internal padding for notch safety (already in your file).
+     If you want it tighter, you can use just env(safe-area-inset-top) */
+}
+
+/* Drawer should cover the header when opened */
+#backdrop{ z-index: 998 !important; }
+#drawer  { z-index: 999 !important; }
+
+/* Ensure the drawer starts at the very top and respects the notch padding */
+#drawer{
+  top: 0;                       /* already present but reaffirm */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Optional: make sure the drawer’s backdrop intercepts taps across the header too */
+#backdrop{ position: fixed; inset: 0; }
+
+/* If you previously added body padding on multiple places, this override keeps things consistent. */
