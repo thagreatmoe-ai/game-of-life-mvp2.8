@@ -540,3 +540,32 @@ body{
   background: inherit;                             /* same color as bar */
   pointer-events: none;
 }
+/* ===== Promote the XP bar (from Resistance card) above both cards ===== */
+/* Tune this if the bar is a tad too high/low under your header */
+:root{ --xpbar-top-offset: 72px; } /* distance under the header (notch padding added below) */
+
+#resistCard .bar{
+  position: fixed !important;               /* take it out of the card flow */
+  left: 16px;                               /* align with your page padding */
+  right: 16px;
+  top: calc(env(safe-area-inset-top) + var(--xpbar-top-offset));
+  z-index: 8;                               /* above cards, below drawer */
+  height: 10px;                             /* a touch thicker looks nicer up top */
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 26px rgba(0,0,0,.35);
+}
+
+/* Make room so the promoted bar doesn’t overlap the two top cards */
+.top-split{ 
+  margin-top: calc(var(--xpbar-top-offset) + 22px) !important; /* breathing room */
+}
+
+/* “Reconstruct” Resistance card bottom so it doesn’t feel empty
+   (the bar no longer lives there, so just tighten the bottom padding slightly) */
+#resistCard{ padding-bottom: 12px !important; }
+
+/* Ensure task bars/other bars are NOT affected */
+#todayTasks .bar,
+.item .bar{ position: static !important; height: 8px !important; box-shadow:none !important; }
