@@ -507,3 +507,19 @@ body{
 }
 
 /* (The FAB already uses var(--tabbar-h), so it will auto-shift up.) */
+/* === Icons-only bottom tabs === */
+#tabbar .tab{
+  gap:0;                       /* no space reserved for labels */
+  min-width:64px;              /* keep big touch targets */
+}
+
+/* hide the text labels */
+#tabbar .tab > span{ 
+  display:none;
+}
+
+/* make icons a touch bigger if you like */
+#tabbar .tab svg{
+  width:22px;
+  height:22px;
+}
