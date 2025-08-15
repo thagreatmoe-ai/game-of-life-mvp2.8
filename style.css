@@ -151,10 +151,11 @@ main{ padding:12px; }
 
 /* Tables */
 /* Tables (prevent right-edge clipping in History) */
+/* Tables — restore natural layout (no clipping), add long-press action row */
 .table{
   width:100%;
   border-collapse: collapse;
-  table-layout: fixed;              /* keep table inside the card */
+  table-layout: auto;              /* let columns size naturally */
 }
 .table th,
 .table td{
@@ -162,23 +163,22 @@ main{ padding:12px; }
   text-align:left;
   padding:8px;
   font-size:13px;
-  overflow: hidden;                 /* clip long text instead of growing width */
-  text-overflow: ellipsis;
   vertical-align: middle;
 }
 
-/* Reserve room for the Undo button and keep it off the rounded edge */
-.table th:last-child,
-.table td:last-child{
-  width:92px;                       /* space for the pill button */
-  white-space: nowrap;
-  overflow: visible;
-  padding-right:12px;               /* breathing room from the card radius */
+/* Long-press “expanded” action row that appears under the tapped row */
+.hist-row{}                         /* marker class for main rows */
+.hist-undo{ display:none; background:rgba(255,255,255,.03); }
+.hist-undo td{
+  padding:10px 8px 12px;
+  border-bottom:1px solid var(--border);
+}
+.hist-undo .actions{
+  display:flex; justify-content:flex-end; gap:8px;
 }
 
-.table td:last-child .btn{
-  display:inline-block;             /* keep button size natural */
-}
+/* When a main row is in show state, reveal the next .hist-undo row */
+.hist-row.show-undo + .hist-undo{ display:table-row; }
 /* -------- Bottom tabbar -------- */
 #tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
