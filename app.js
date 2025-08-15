@@ -935,6 +935,8 @@ if (fab){
   updateFab();
   $$('#tabbar .tab').forEach(t => t.addEventListener('click', () => setTimeout(updateFab, 0)));
 }
+// ✅ CLOSE the DOMContentLoaded handler:
+});
 
 // Utils
 function openSheet(html){ const s=$('#sheet'); s.innerHTML=html; s.classList.add('open'); }
