@@ -85,25 +85,25 @@
             </div>
           </div>
 
-          <!-- Quick Session -------------------------------------------->
-          <div class="card glass compact" id="quickCard">
-            <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
+          <!-- Quick Session -->
+<div class="card glass compact" id="quickCard">
+  <h2 style="font-size:var(--h2); margin:0 0 8px">Quick Session</h2>
 
-            <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:140px;">
-              <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
-              <input id="customMin" class="input" placeholder="20" inputmode="numeric">
-            </label>
+  <label class="stack small" style="display:flex; flex-direction:column; gap:6px; min-width:140px;">
+    <span style="font-size:var(--small); color:var(--muted)">Custom mins</span>
+    <input id="customMin" class="input" placeholder="20" inputmode="numeric">
+  </label>
 
-            <!-- iOS-style toggle (start/stop) -->
-            <label class="switch" style="margin-top:8px" aria-label="Session toggle">
-              <input id="sessToggle" type="checkbox">
-              <span class="slider"></span>
-            </label>
+  <!-- Switch + timer on the same row -->
+  <div class="sess-row">
+    <label class="switch">
+      <input id="sessToggle" type="checkbox" aria-label="Start/Stop session">
+      <span class="slider"></span>
+    </label>
 
-            <div id="timerBox" class="sub small" style="margin-top:8px; color:var(--muted)"></div>
-          </div>
-
-        </div>
+    <div id="timerBox" class="sub small">Session stopped.</div>
+  </div>
+</div>
 
         <!-- Today’s tasks ---------------------------------------------->
         <div class="card">
