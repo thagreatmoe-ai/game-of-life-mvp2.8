@@ -395,3 +395,19 @@ h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
 /* Hide existing-task list/cards inside the sheet when launched via FAB (add-only mode) */
 .addMode #sheet .list { display: none !important; }
 .addMode #sheet .item { display: none !important; }
+/* Quick Session: keep switch and timer on one line and card height stable */
+#quickCard .sess-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:8px;
+  min-height:34px;            /* row stays same height whether running or stopped */
+}
+
+#quickCard #timerBox{
+  margin:0;
+  color:var(--muted);
+  white-space:nowrap;         /* never wraps to a new line */
+  overflow:hidden;
+  text-overflow:ellipsis;     /* protects layout if text gets long */
+}
