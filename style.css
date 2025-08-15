@@ -523,3 +523,20 @@ body{
   width:22px;
   height:22px;
 }
+/* === Tabbar: keep same height but make it touch the bottom visually === */
+#tabbar{
+  height: var(--tabbar-h) !important;      /* keep your chosen bar height */
+  padding-bottom: 0 !important;             /* no extra inner padding */
+  bottom: 0;                                 /* sit at the bottom */
+}
+
+/* Paint the home-indicator area BELOW the bar so there’s no gap */
+#tabbar::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  bottom: calc(-1 * env(safe-area-inset-bottom)); /* draw below the bar */
+  height: env(safe-area-inset-bottom);            /* exactly the unsafe area */
+  background: inherit;                             /* same color as bar */
+  pointer-events: none;
+}
