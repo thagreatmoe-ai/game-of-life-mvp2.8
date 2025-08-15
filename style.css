@@ -308,3 +308,27 @@ h2, h3{ margin:0 0 10px; letter-spacing:.2px; }
 .item .actions .stack{ flex:1 1 220px; min-width:220px; }
 .item .actions .btn{ flex:1 1 120px; min-width:120px; }
 .item .actions select.input, .item .actions input.input{ width:100%; }
+/* === Fix: Profile form rows overflowing off-screen === */
+/* Let dense rows inside cards wrap on narrow phones */
+.card .row.gap8{ 
+  flex-wrap: wrap;
+}
+
+/* Make each label+field block shrink nicely */
+.card .row.gap8 > .stack{
+  flex: 1 1 180px;     /* grows, but can wrap */
+  min-width: 160px;    /* don’t get too tiny */
+}
+
+/* Keep action buttons (Save / +Title / +Reward / Prestige) natural size */
+.card .row.gap8 > .btn{
+  flex: 0 0 auto;
+}
+
+/* Ensure inputs/selects never exceed their column */
+.card .row.gap8 input.input,
+.card .row.gap8 select.input{
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
